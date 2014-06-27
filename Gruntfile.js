@@ -15,7 +15,8 @@ module.exports = function( grunt ) {
         connect: {
             server: {
                 options: {
-                    port: 8080
+                    port: 8080,
+                    hostname: '*'
                 }
             },
             test: {
@@ -150,9 +151,22 @@ module.exports = function( grunt ) {
                         } );
                         return [ 'require.js' ].concat( widgets );
                     } )(),
-                    out: "build/js/combined.min.js",
-                    optimize: "uglify2"
+                    exclude: ["jquery"],
+                    out: "build/js/app.js",
+                    optimize: "none"
                 }
+            }
+        },
+        copy: {
+            main: {
+                files: [
+                    {expand: true, flatten: true, src: ['build/js/app.js'], dest: '../datawinners/media/javascript/', filter: 'isFile'},
+                    {expand: true, flatten: true, src: ['build/css/formhub.css'], dest: '../datawinners/media/css/scss/', filter: 'isFile'},
+
+                    {expand: true, flatten: true, src: ['lib/bootstrap-sass/fonts/'], dest: '../datawinners/media/css/font/', filter: 'isFile'},
+                    {expand: true, flatten: true, src: ['lib/bootstrap-sass/fonts/*'], dest: '../datawinners/media/css/font/', filter: 'isFile'}
+
+                ]
             }
         },
         modernizr: {
@@ -178,6 +192,7 @@ module.exports = function( grunt ) {
     grunt.loadNpmTasks( 'grunt-contrib-sass' );
     grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
     grunt.loadNpmTasks( "grunt-modernizr" );
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     //maybe this can be turned into a npm module?
     grunt.registerTask( 'prepWidgetSass', 'Preparing _widgets.scss dynamically', function() {
@@ -210,6 +225,7 @@ module.exports = function( grunt ) {
     } );
 
     grunt.registerTask( 'compile', [ 'requirejs:compile' ] );
+    grunt.registerTask( 'copytodw', [ 'copy' ] );
     grunt.registerTask( 'test', [ 'jsbeautifier:test', 'jshint', 'connect:test', 'compile', 'jasmine' ] );
     grunt.registerTask( 'style', [ 'prepWidgetSass', 'sass' ] );
     grunt.registerTask( 'server', [ 'connect:server:keepalive' ] );

@@ -37,6 +37,10 @@ requirejs.config( {
     }
 } );
 
+define('jquery', [], function() {
+    return jQuery;
+});
+
 requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
     function( $, Modernizr, Form ) {
         var loadErrors, form;
@@ -47,39 +51,41 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
             $( 'html' ).addClass( 'touch' );
         }
 
-        //check if HTML form is hardcoded or needs to be retrieved
-        if ( getURLParameter( 'xform' ) !== 'null' ) {
-            $( '.guidance' ).remove();
-            $.get( 'http://xslt-dev.enketo.org/?xform=' + getURLParameter( 'xform' ), function( data ) {
-                var $data;
-                //this replacement should move to XSLT after which the GET can just return 'xml' and $data = $(data)
-                data = data.replace( /jr\:template=/gi, 'template=' );
-                $data = $( $.parseXML( data ) );
-                formStr = ( new XMLSerializer() ).serializeToString( $data.find( 'form:eq(0)' )[ 0 ] );
-                modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
-                $( '#validate-form' ).before( formStr );
-                initializeForm();
-            }, 'text' );
-        } else if ( $( 'form.or' ).length > 0 ) {
-            $( '.guidance' ).remove();
-            initializeForm();
-        }
+        var $data;
+        data = xform_xml.replace( /jr\:template=/gi, 'template=' );
+        $data = $( $.parseXML( data ) );
+        formStr = ( new XMLSerializer() ).serializeToString( $data.find( 'form:eq(0)' )[ 0 ] );
+        modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
+
+        $( '#validate-form' ).before( formStr );
+        initializeForm();
 
         //validate handler for validate button
         $( '#validate-form' ).on( 'click', function() {
             form.validate();
             if ( !form.isValid() ) {
-                alert( 'Form contains errors. Please see fields marked in red.' );
+                alert( 'Form contain errors. Please see fields marked in red.' );
             } else {
-                alert( 'Form is valid! (see XML record in the console)' );
-                console.log( 'record:', form.getDataStr() );
+                DW.loading();
+                var data = form.getDataStr();
+                var saveURL= submissionUpdateUrl || submissionCreateUrl;
+
+                var success = function(data,status){
+                    alert('Your data has been saved successfully');
+                    window.location.replace(surveyResponseId == '' ? submissionURL : submissionLogURL);
+                };
+                var error = function(status){
+                    alert('Unable to submit form, please try after some time');
+                };
+
+                $.post(saveURL,{'form_data':data}).done(success).fail(error);
             }
         } );
 
         //initialize the form
 
         function initializeForm() {
-            form = new Form( 'form.or:eq(0)', modelStr );
+            form = new Form( 'form.or:eq(0)', modelStr, dataStrToEdit );
             //for debugging
             window.form = form;
             //initialize form and check for load errors
