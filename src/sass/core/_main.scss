@@ -8,6 +8,7 @@ strong {
     @include font-bold;
 }
 
+.main{
 h2, h3, h4 {
     @include font-bold;
     color: $accent-color-1;
@@ -26,7 +27,7 @@ h4 {
 input, select, textarea {
     @include font-normal;
 }
-
+}
 /** hide stuff **/
 
 .or [lang]:not(.active), .or-option-translations, .or-appearance-page-break, .or-constraint-msg, .or-required-msg,
