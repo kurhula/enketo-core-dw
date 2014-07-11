@@ -3778,20 +3778,16 @@ body {
 strong {
   font-weight: bold; }
 
-.main
-h2, h3, h4, .question.or-appearance-list-nolabel ~ .note, .question.or-appearance-label ~ .note {
+.main h2, .main h3, .main h4, .main .question.or-appearance-list-nolabel ~ .note, .main .question.or-appearance-label ~ .note {
   font-weight: bold;
   color: #252525;
   text-align: center; }
-
-h3 {
+.main h3 {
   padding: 5px 0 15px 0;
   word-wrap: break-word; }
-
-h4, .question.or-appearance-list-nolabel ~ .note, .question.or-appearance-label ~ .note {
+.main h4, .main .question.or-appearance-list-nolabel ~ .note, .main .question.or-appearance-label ~ .note {
   text-align: left; }
-
-input, select, textarea {
+.main input, .main select, .main textarea {
   font-weight: normal; }
 
 /** hide stuff **/
