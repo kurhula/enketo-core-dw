@@ -41,6 +41,11 @@ define('jquery', [], function() {
     return jQuery;
 });
 
+//Hack to not include generated bootstrap files but use the one included by datawinners htmls
+define('bootstrap', [], function() {
+    return jQuery;
+});
+
 requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
     function( $, Modernizr, Form ) {
         var loadErrors, form;
