@@ -78,7 +78,11 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
                 var saveURL= submissionUpdateUrl || submissionCreateUrl;
 
                 var success = function(data,status){
-                    alert('Your data has been saved successfully');
+                    data = $.parseJSON(data);
+                    if(data.error_message)
+                        alert(data.error_message);
+                    else
+                        alert('Your data has been saved successfully');
                     window.location.replace(surveyResponseId == '' ? submissionURL : submissionLogURL);
                 };
                 var error = function(status){
