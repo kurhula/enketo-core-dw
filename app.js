@@ -67,31 +67,25 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
         $( '#validate-form' ).before( formStr );
         initializeForm();
         $("form").trigger("postFormLoadAction");
+
         //validate handler for validate button
         $( '#validate-form' ).on( 'click', function() {
             form.validate();
-            if ( !form.isValid() ) {
-                alert( 'Form contain errors. Please see fields marked in red.' );
-            } else {
+            if ( !form.isValid() ){
+//                alert( 'Form contain errors. Please see fields marked in red.' );
+            }
+            else
+            {
                 DW.loading();
                 var data = form.getDataStr();
                 var saveURL= submissionUpdateUrl || submissionCreateUrl;
 
-                var success = function(data,status){
-                    data = $.parseJSON(data);
-                    if(data.error_message)
-                        alert(data.error_message);
-                    else
-                        alert('Your data has been saved successfully');
-                    window.location.replace(surveyResponseId == '' ? submissionURL : submissionLogURL);
+                var success = function(data, status){
+                    window.location.replace(surveyResponseId === '' ? submissionURL : submissionLogURL);
                 };
-                var error = function(status){
-                    alert('Unable to submit form, please try after some time');
-                };
-
-                $.post(saveURL,{'form_data':data}).done(success).fail(error);
+                $.post(saveURL,{'form_data':data}).done(success);
             }
-        } );
+        });
 
         //initialize the form
 
