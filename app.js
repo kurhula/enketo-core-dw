@@ -81,6 +81,7 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
         modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
 
         $( '#validate-form' ).before( formStr );
+        $("form").trigger("initializePostFormLoadAction");
         initializeForm();
         $("form").trigger("postFormLoadAction");
 
