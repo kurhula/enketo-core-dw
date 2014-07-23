@@ -48,10 +48,7 @@ define('bootstrap', [], function() {
 
 function saveXformSubmission(callback) {
     form.validate();
-    if (!form.isValid()) {
-//                alert( 'Form contain errors. Please see fields marked in red.' );
-    }
-    else {
+    if (form.isValid()){
         DW.loading();
         var data = form.getDataStr();
         var saveURL = submissionUpdateUrl || submissionCreateUrl;
@@ -60,7 +57,7 @@ function saveXformSubmission(callback) {
             if(typeof(callback) == "function")
                 callback();
             else
-                window.location.replace(surveyResponseId === '' ? submissionURL : submissionLogURL);
+                window.location.reload();
         };
         $.post(saveURL, {'form_data': data}).done(success);
     }
