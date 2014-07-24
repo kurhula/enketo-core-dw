@@ -4319,7 +4319,7 @@ input:not([type="radio"]):not([type="checkbox"]), textarea {
     .geopicker.full-screen .map-canvas-wrapper {
       float: none;
       width: 100%;
-      padding: 0 25px 25px 25px;
+      padding: 25px;
       -webkit-flex: 1;
       -ms-flex: 1;
       flex: 1;
@@ -4357,6 +4357,21 @@ input:not([type="radio"]):not([type="checkbox"]), textarea {
         margin-left: 15px; }
     .geopicker.full-screen .points {
       display: none; }
+  .geopicker .leaflet-control-layers-toggle,
+  .geopicker .leaflet-retina .leaflet-control-layers-toggle {
+    background: none;
+    padding: 5px;
+    color: #888;
+    text-align: center;
+    font-size: 20px; }
+
+.question:not(.or-appearance-label):not(.or-appearance-compact):not(.or-appearance-quickcompact) .geopicker label {
+  line-height: 16px;
+  font-weight: normal; }
+  .question:not(.or-appearance-label):not(.or-appearance-compact):not(.or-appearance-quickcompact) .geopicker label input[type=radio] ~ .option-label::before {
+    font-size: 16px;
+    height: 16px;
+    margin-right: 2px; }
 
 /* required styles for Leaflet (unchanged) */
 .leaflet-map-pane,
