@@ -54,12 +54,18 @@ function saveXformSubmission(callback) {
         var saveURL = submissionUpdateUrl || submissionCreateUrl;
 
         var success = function (data, status) {
+            DW.trackEvent('advanced-qns-submission', 'advanced-qns-submission-success');
             if(typeof(callback) == "function")
                 callback();
             else
                 window.location.reload();
         };
-        $.post(saveURL, {'form_data': data}).done(success);
+
+        var error = function(){
+            DW.trackEvent('advanced-qns-submission', 'advanced-qns-submission-failure');
+        };
+
+        $.post(saveURL, {'form_data': data}).done(success).fail(error);
     }
 }
 requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
