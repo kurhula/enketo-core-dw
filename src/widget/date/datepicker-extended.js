@@ -114,6 +114,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/date/bootstr
         };
 
         DatepickerExtended.prototype._formatDate = function(format,value){
+            if (value == "") return "";
             var dateSplit = value.split('-');
             if(format == 'yyyy'){
                 return dateSplit[0];
