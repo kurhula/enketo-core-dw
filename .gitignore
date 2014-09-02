@@ -8,3 +8,6 @@ build/js/*
 *.sublime-workspace
 _site
 _SpecRunner.html
+src/widget/geopoint-gmaps/geopointpicker.css
+src/sass/core/*.css
+lib/bootstrap-sass/bootstrap/*.css
