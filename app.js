@@ -65,7 +65,7 @@ function saveXformSubmission(callback) {
             DW.trackEvent('advanced-qns-submission', 'advanced-qns-submission-failure');
         };
 
-        $.post(saveURL, {'form_data': data}).done(success).fail(error);
+        $.post(saveURL, {'form_data': data, 'form_code': questionnaire_code}).done(success).fail(error);
     }
 }
 requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
