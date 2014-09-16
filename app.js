@@ -56,8 +56,12 @@ function getFormData(data) {
 function addAttachmentData(formData) {
     var retainFiles = [];
     var mediaInputs = $('form.or input[type="file"]')
+    if (!mediaInputs)
+        return formData;
+
     mediaInputs.each(function () {
         var file = this.files[0];
+        //Take the latest selected file for upload
         if (file) {
             formData.append(file.name, file);
         }
