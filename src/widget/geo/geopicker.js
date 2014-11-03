@@ -73,14 +73,14 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 that = this,
                 defaultLatLng = [ 16.8164, -3.0171 ];
 
+            this.$question = $( this.element ).closest( '.question' );
+
             this.mapId = Math.round( Math.random() * 10000000 );
             this.props = this._getProps();
 
             this._addDomElements();
             this.currentIndex = 0;
             this.points = [];
-
-            this.$question = $( this.element ).closest( '.question' );
 
             // load default value
             if ( loadedVal ) {
@@ -106,7 +106,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
 
                 event.stopImmediatePropagation();
 
-                if ( event.namespace !== 'bymap' && event.namespace !== 'bysearch' && that.polyline && that.updatedPolylineWouldIntersect( latLng, that.currentIndex ) ) {
+                // if the points array contains empty points, skip the intersection check, it will be done before closing the polygon
+                if ( event.namespace !== 'bymap' && event.namespace !== 'bysearch' && that.polyline && !that.containsEmptyPoints( that.points, that.currentIndex ) && that.updatedPolylineWouldIntersect( latLng, that.currentIndex ) ) {
                     that._showIntersectError();
                     that._updateInputs( that.points[ that.currentIndex ], 'nochange' );
                 } else {
@@ -147,6 +148,11 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 that._updateMap();
                 return false;
             } );
+
+            // add wide class if question is wide
+            if ( this.props.wide ) {
+                this.$widget.addClass( 'wide' );
+            }
 
             // copy hide-input class from question to widget and add show/hide input controller
             this.$widget
@@ -237,7 +243,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 search: map,
                 appearances: appearances,
                 type: this.element.attributes[ 'data-type-xml' ].textContent,
-                touch: this.options.touch
+                touch: this.options.touch,
+                wide: ( this.$question.width() / this.$question.closest( 'form.or' ).width() > 0.8 )
             };
         };
 
@@ -270,8 +277,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 '</div>' +
                 '</div>' +
                 '<div class="geo-inputs">' +
-                '<label class="geo">latitude (x.y &deg;)<input class="ignore" name="lat" type="number" step="0.0001" min="-90" max="90"/></label>' +
-                '<label class="geo">longitude (x.y &deg;)<input class="ignore" name="long" type="number" step="0.0001" min="-180" max="180"/></label>' +
+                '<label class="geo">latitude (x.y &deg;)<input class="ignore" name="lat" type="number" step="0.000001" min="-90" max="90"/></label>' +
+                '<label class="geo">longitude (x.y &deg;)<input class="ignore" name="long" type="number" step="0.000001" min="-180" max="180"/></label>' +
                 '<label class="geo">altitude (m)<input class="ignore" name="alt" type="number" step="0.1" /></label>' +
                 '<label class="geo">accuracy (m)<input class="ignore" name="acc" type="number" step="0.1" /></label>' +
                 '<button type="button" class="btn-remove"><span class="glyphicon glyphicon-trash"> </span></button>' +
@@ -332,8 +339,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
          * @return {Boolean} Whether the value was changed.
          */
         Geopicker.prototype._updateValue = function() {
-            var oldGeoTraceValue = $( this.element ).val(),
-                newGeoTraceValue = '',
+            var oldValue = $( this.element ).val(),
+                newValue = '',
                 that = this;
 
             this._markAsValid();
@@ -348,26 +355,26 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
 
                 geopoint = ( lat && lng ) ? lat + ' ' + lng + ' ' + alt + ' ' + acc : "";
 
-                //only last item may be empty
+                // only last item may be empty
                 if ( !that._isValidGeopoint( geopoint ) && !( geopoint === '' && index === array.length - 1 ) ) {
                     that._markAsInvalid( index );
                 }
-                //newGeoTraceValue += geopoint;
+                // newGeoTraceValue += geopoint;
                 if ( !( geopoint === '' && index === array.length - 1 ) ) {
-                    newGeoTraceValue += geopoint;
+                    newValue += geopoint;
                     if ( index !== array.length - 1 ) {
-                        newGeoTraceValue += ';';
+                        newValue += ';';
                     }
                 } else {
                     // remove trailing semi-colon
-                    newGeoTraceValue = newGeoTraceValue.substring( 0, newGeoTraceValue.lastIndexOf( ';' ) );
+                    newValue = newValue.substring( 0, newValue.lastIndexOf( ';' ) );
                 }
             } );
 
-            console.log( 'updating value by joining', this.points, 'old value', oldGeoTraceValue, 'new value', newGeoTraceValue );
+            console.log( 'updating value by joining', this.points, 'old value', oldValue, 'new value', newValue );
 
-            if ( oldGeoTraceValue !== newGeoTraceValue ) {
-                $( this.element ).val( newGeoTraceValue ).trigger( 'change' );
+            if ( oldValue !== newValue ) {
+                $( this.element ).val( newValue ).trigger( 'change' );
                 return true;
             } else {
                 return false;
@@ -467,15 +474,16 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 event.preventDefault();
                 navigator.geolocation.getCurrentPosition( function( position ) {
                     var latLng = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
+                        lat: Math.round( position.coords.latitude * 1000000 ) / 1000000,
+                        lng: Math.round( position.coords.longitude * 1000000 ) / 1000000
                     };
+
                     if ( that.polyline && that.updatedPolylineWouldIntersect( latLng, that.currentIndex ) ) {
                         that._showIntersectError();
                     } else {
                         //that.points[that.currentIndex] = [ position.coords.latitude, position.coords.longitude ];
                         //that._updateMap( );
-                        that._updateInputs( [ position.coords.latitude, position.coords.longitude, position.coords.altitude, position.coords.accuracy ] );
+                        that._updateInputs( [ latLng.lat, latLng.lng, position.coords.altitude, position.coords.accuracy ] );
                         // if current index is last of points, automatically create next point
                         if ( that.currentIndex === that.points.length - 1 && that.props.type !== 'geopoint' ) {
                             that._addPoint();
@@ -510,17 +518,17 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                     if ( address ) {
                         address = address.split( /\s+/ ).join( '+' );
                         $.get( searchSource.replace( '{address}', address ), function( response ) {
-                            var latLng;
-                            if ( response.results && response.results.length > 0 && response.results[ 0 ].geometry && response.results[ 0 ].geometry.location ) {
-                                latLng = response.results[ 0 ].geometry.location;
-                                that._updateMap( [ latLng.lat, latLng.lng ], defaultZoom );
-                                that.$search.closest( '.input-group' ).removeClass( 'has-error' );
-                            } else {
-                                //TODO: add error message
-                                that.$search.closest( '.input-group' ).addClass( 'has-error' );
-                                console.log( "Location '" + address + "' not found" );
-                            }
-                        }, 'json' )
+                                var latLng;
+                                if ( response.results && response.results.length > 0 && response.results[ 0 ].geometry && response.results[ 0 ].geometry.location ) {
+                                    latLng = response.results[ 0 ].geometry.location;
+                                    that._updateMap( [ latLng.lat, latLng.lng ], defaultZoom );
+                                    that.$search.closest( '.input-group' ).removeClass( 'has-error' );
+                                } else {
+                                    //TODO: add error message
+                                    that.$search.closest( '.input-group' ).addClass( 'has-error' );
+                                    console.log( "Location '" + address + "' not found" );
+                                }
+                            }, 'json' )
                             .fail( function() {
                                 //TODO: add error message
                                 that.$search.closest( '.input-group' ).addClass( 'has-error' );
@@ -598,20 +606,27 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                     layers: this._getDefaultLayer( layers )
                 };
 
-                // console.log( 'no map yet, creating it' );
                 this.map = L.map( 'map' + this.mapId, options )
                     .on( 'click', function( e ) {
-                        var latLng = e.latlng;
-                        if ( that.polyline && that.updatedPolylineWouldIntersect( latLng, that.currentIndex + 1 ) ) {
+                        var latLng = e.latlng,
+                            indexToPlacePoint = ( that.$lat.val() && that.$lng.val() ) ? that.points.length : that.currentIndex;
+
+                        // reduce precision to 6 decimals
+                        latLng.lat = Math.round( latLng.lat * 1000000 ) / 1000000;
+                        latLng.lng = Math.round( latLng.lng * 1000000 ) / 1000000;
+
+                        // Skip intersection check if points contain empties. It will be done later, before the polygon is closed.
+                        if ( that.props.type !== 'geopoint' && !that.containsEmptyPoints( that.points, indexToPlacePoint ) && that.updatedPolylineWouldIntersect( latLng, indexToPlacePoint ) ) {
                             that._showIntersectError();
                         } else {
-                            // do nothing if the field has a current marker
-                            // instead the user will have to drag to change it by map
                             if ( !that.$lat.val() || !that.$lng.val() || that.props.type === 'geopoint' ) {
                                 that._updateInputs( latLng, 'change.bymap' );
-                            } else if ( that.$lat.val() && that.$lng.val() && that.props.type !== 'geopoint' ) {
+                            } else if ( that.$lat.val() && that.$lng.val() ) {
                                 that._addPoint();
                                 that._updateInputs( latLng, 'change.bymap' );
+                            } else {
+                                // do nothing if the field has a current marker
+                                // instead the user will have to drag to change it by map
                             }
                         }
                     } );
@@ -740,6 +755,11 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                     } ).on( 'dragend', function( e ) {
                         var latLng = e.target.getLatLng(),
                             index = e.target.options.alt;
+
+                        // reduce precision to 6 decimals
+                        latLng.lat = Math.round( latLng.lat * 1000000 ) / 1000000;
+                        latLng.lng = Math.round( latLng.lng * 1000000 ) / 1000000;
+
                         if ( that.polyline && that.updatedPolylineWouldIntersect( latLng, index ) ) {
                             that._showIntersectError();
                             that._updateMarkers();
@@ -851,8 +871,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 readableArea = L.GeometryUtil.readableArea( area );
 
                 L.popup( {
-                    className: 'enketo-area-popup'
-                } )
+                        className: 'enketo-area-popup'
+                    } )
                     .setLatLng( this.polygon.getBounds().getCenter() )
                     .setContent( readableArea )
                     .openOn( this.map );
@@ -924,6 +944,11 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 this._addPoint();
             }
 
+            // final check to see if there are intersections
+            if ( this.polyline && !this.containsEmptyPoints( this.points, this.points.length ) && this.updatedPolylineWouldIntersect( this.points[ 0 ], this.currentIndex ) ) {
+                return this._showIntersectError();
+            }
+
             this._updateInputs( this.points[ 0 ] );
         };
 
@@ -941,10 +966,10 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
 
             ev = ( typeof ev !== 'undefined' ) ? ev : 'change';
 
-            this.$lat.val( Math.round( lat * 10000 ) / 10000 || '' );
-            this.$lng.val( Math.round( lng * 10000 ) / 10000 || '' );
-            this.$alt.val( Math.round( alt * 10 ) / 10 || '' );
-            this.$acc.val( Math.round( acc * 10 ) / 10 || '' ).trigger( ev );
+            this.$lat.val( lat || '' );
+            this.$lng.val( lng || '' );
+            this.$alt.val( alt || '' );
+            this.$acc.val( acc || '' ).trigger( ev );
         };
 
         /**
@@ -962,6 +987,20 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
             this.$map.show();
             this.$widget.find( '.btn' ).removeClass( 'disabled' );
         };
+
+        /**
+         * Checks whether the array of points contains empty ones, excluding the last point.
+         * Marks points as errors if empty
+         *
+         * @allowedIndex {number=} The index in which an empty value is allowed
+         * @return {[type]} [description]
+         */
+        Geopicker.prototype.containsEmptyPoints = function( points, allowedIndex ) {
+            return points.some( function( point, index ) {
+                return index !== allowedIndex && ( !point[ 0 ] || !point[ 1 ] );
+            } );
+        };
+
 
         /**
          * Check if a polyline created from the current collection of points
@@ -1049,7 +1088,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                 if ( area >= 10000 ) {
                     areaStr = ( area * 0.0001 ).toFixed( 2 ) + ' ha';
                 } else {
-                    areaStr = area.toFixed( 2 ) + ' m&sup2;';
+                    areaStr = area.toFixed( 0 ) + ' m&sup2;';
                 }
 
                 return areaStr;
@@ -1078,34 +1117,6 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet' ],
                     }
                 }
                 return false;
-            },
-
-            // Check for intersection if new latlng was added to this polyline.
-            // NOTE: does not support detecting intersection for degenerate cases.
-            newLatLngIntersects: function( latlng, skipFirst ) {
-                // Cannot check a polyline for intersecting lats/lngs when not added to the map
-                if ( !this._map ) {
-                    return false;
-                }
-
-                return this.newPointIntersects( this._map.latLngToLayerPoint( latlng ), skipFirst );
-            },
-
-            // Check for intersection if new point was added to this polyline.
-            // newPoint must be a layer point.
-            // NOTE: does not support detecting intersection for degenerate cases.
-            newPointIntersects: function( newPoint, skipFirst ) {
-                var points = this._originalPoints,
-                    len = points ? points.length : 0,
-                    lastPoint = points ? points[ len - 1 ] : null,
-                    // The previous previous line segment. Previous line segment doesn't need testing.
-                    maxIndex = len - 2;
-
-                if ( this._tooFewPointsForIntersection( 1 ) ) {
-                    return false;
-                }
-
-                return this._lineSegmentsIntersectsRange( lastPoint, newPoint, maxIndex, skipFirst ? 1 : 0 );
             },
 
             // Polylines with 2 sides can only intersect in cases where points are collinear (we don't support detecting these).

@@ -9,6 +9,8 @@
 module.exports = function( grunt ) {
     var js;
 
+    require( 'load-grunt-tasks' )( grunt );
+
     // Project configuration.
     grunt.initConfig( {
         pkg: grunt.file.readJSON( 'package.json' ),
@@ -80,10 +82,12 @@ module.exports = function( grunt ) {
                                 'enketo-config': '../config.json',
                                 text: 'text/text',
                                 xpath: 'xpath/build/xpathjs_javarosa',
+                                jquery: 'bower-components/jquery/dist/jquery',
                                 'jquery.xpath': 'jquery-xpath/jquery.xpath',
                                 'jquery.touchswipe': 'jquery-touchswipe/jquery.touchSwipe',
                                 'leaflet': 'leaflet/leaflet',
-                                'bootstrap-slider': 'bootstrap-slider/js/bootstrap-slider'
+                                'bootstrap-slider': 'bootstrap-slider/js/bootstrap-slider',
+                                'q': 'bower-components/q/q'
                             },
                             shim: {
                                 'xpath': {
@@ -149,7 +153,7 @@ module.exports = function( grunt ) {
                         widgets.forEach( function( widget, index, arr ) {
                             arr.push( 'text!' + widget.substr( 0, widget.lastIndexOf( '/' ) + 1 ) + 'config.json' );
                         } );
-                        return [ 'require.js' ].concat( widgets );
+                        return [ './bower-components/requirejs/require.js' ].concat( widgets );
                     } )(),
                     exclude: ["jquery"],
                     out: "build/js/app.js",
@@ -170,30 +174,23 @@ module.exports = function( grunt ) {
             }
         },
         modernizr: {
-            "devFile": "remote",
-            "outputFile": "lib/Modernizr.js",
-            "extra": {
-                "shiv": false,
-                "printshiv": true,
-                "load": false,
-                "mq": false,
-                "cssclasses": true
-            },
-            "uglify": false,
-            "parseFiles": true
+            dist: {
+                "devFile": "remote",
+                "outputFile": "lib/Modernizr.js",
+                "extra": {
+                    "shiv": false,
+                    "printshiv": true,
+                    "load": false,
+                    "mq": false,
+                    "cssclasses": true
+                },
+                "uglify": false,
+                "parseFiles": true
+            }
         }
     } );
 
-    grunt.loadNpmTasks( 'grunt-contrib-connect' );
-    grunt.loadNpmTasks( 'grunt-jsbeautifier' );
-    grunt.loadNpmTasks( 'grunt-contrib-jasmine' );
-    grunt.loadNpmTasks( 'grunt-contrib-watch' );
-    grunt.loadNpmTasks( 'grunt-contrib-jshint' );
-    grunt.loadNpmTasks( 'grunt-contrib-sass' );
-    grunt.loadNpmTasks( 'grunt-contrib-requirejs' );
-    grunt.loadNpmTasks( "grunt-modernizr" );
     grunt.loadNpmTasks('grunt-contrib-copy');
-
     //maybe this can be turned into a npm module?
     grunt.registerTask( 'prepWidgetSass', 'Preparing _widgets.scss dynamically', function() {
         var widgetConfig, widgetFolderPath, widgetSassPath, widgetConfigPath,
@@ -224,10 +221,10 @@ module.exports = function( grunt ) {
 
     } );
 
-    grunt.registerTask( 'compile', [ 'requirejs:compile' ] );
+    grunt.registerTask( 'compile', [ 'modernizr', 'requirejs:compile' ] );
     grunt.registerTask( 'copytodw', [ 'copy' ] );
-    grunt.registerTask( 'test', [ 'jsbeautifier:test', 'jshint', 'connect:test', 'compile', 'jasmine' ] );
+    grunt.registerTask( 'test', [ 'modernizr', 'jsbeautifier:test', 'jshint', 'connect:test', 'compile', 'jasmine' ] );
     grunt.registerTask( 'style', [ 'prepWidgetSass', 'sass' ] );
     grunt.registerTask( 'server', [ 'connect:server:keepalive' ] );
-    grunt.registerTask( 'default', [ 'jshint', 'prepWidgetSass', 'sass', 'test' ] );
+    grunt.registerTask( 'default', [ 'modernizr', 'jshint', 'prepWidgetSass', 'sass', 'test' ] );
 };

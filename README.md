@@ -1,7 +1,7 @@
-enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.png)](https://travis-ci.org/enketo/enketo-core)
+enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.svg)](https://travis-ci.org/enketo/enketo-core) [![devDependency Status](https://david-dm.org/enketo/enketo-core/dev-status.svg)](https://david-dm.org/enketo/enketo-core#info=devDependencies)
 ================
 
-The engine that powers [Enketo Smart Paper](https://enketo.org).
+The engine that powers [Enketo Smart Paper](https://enketo.org) and various third party tools.
 
 This repo is meant to use as a building block for your own enketo-powered application or to add features that you'd like to see in enketo hosted on [formhub.org](https://formhub.org) and [enketo.org](https://enketo.org)
 
@@ -13,7 +13,7 @@ Follow the [Enketo blog](http://blog.enketo.org) or [Enketo on twitter](https://
 1. install [node](http://nodejs.org/) (and [npm](https://npmjs.org/)), [grunt-cli](http://gruntjs.com/getting-started) and [ruby](https://www.ruby-lang.org/en/downloads/)
 2. clone the repo
 3. get the submodules with `git submodule update --init --recursive` (run this again after pulling updates!)
-3. install most dependencies with `npm install`
+3. install most dependencies with `npm install` and `bower install`
 4. install sass with `gem install sass` or `gem update sass` if already installed
 4. build and test with `grunt`
 5. start built-in server with `grunt server` 
