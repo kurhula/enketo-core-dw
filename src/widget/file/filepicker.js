@@ -58,7 +58,6 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         // show loaded file name regardless of whether widget is supported
         if ( existingFileName ) {
             this._showFileName( existingFileName, this.mediaType );
-            $input.removeAttr( 'data-loaded-file-name' );
         }
 
         if ( !fileManager || !fileManager.isSupported() ) {
@@ -111,6 +110,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
 
             // get the file
             file = this.files[ 0 ];
+            $input.removeAttr( 'data-loaded-file-name' );
 
             // process the file
             fileManager.getFileUrl( file )
