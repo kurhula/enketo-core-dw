@@ -11,7 +11,7 @@ define( [ "q", "jquery" ], function( Q, $ ) {
     "use strict";
 
     var maxSize,
-        supported = typeof FileReader === 'function',
+        supported = typeof FileReader !== 'undefined',
         notSupportedAdvisoryMsg = '';
 
     /**
@@ -89,7 +89,6 @@ define( [ "q", "jquery" ], function( Q, $ ) {
      */
     function getCurrentFiles() {
         var file,
-            deferred = Q.defer(),
             files = [];
 
         // first get any files inside file input elements

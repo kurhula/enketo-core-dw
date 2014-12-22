@@ -19,54 +19,43 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+@mixin transition($transition...) {
+    -webkit-transition: $transition;
+    transition: $transition;
+}
+
 @mixin transition-slow($prop: all, $duration: 1s) {
     -webkit-transition: $prop $duration ease-out;
-    //-moz-transition: $prop $duration ease-out;
-    //-o-transition: $prop $duration ease-out;
     transition: $prop $duration ease-out;
 }
 
 @mixin transition-fast($prop: all) {
     -webkit-transition: $prop 0.6s ease-out;
-    //-moz-transition: all 0.6s ease-out;
-    //-o-transition: all 0.6s ease-out;
     transition: $prop 0.6s ease-out;
 }
 
 @mixin transition-none($prop: all) {
     -webkit-transition: all 0.001s ease-out;
-    //-moz-transition: all 0.01s ease-out;
-    //-o-transition: all 0.01s ease-out;
     transition: all 0.001s ease-out;
 }
 
 @mixin transition-background-color {
     -webkit-transition: background-color 0.2s linear;
-    //-moz-transition: background-color 0.2s linear;
-    //-o-transition: background-color 0.2s linear;
     transition: background-color 0.2s linear;
 }
 
-@mixin font-sizes($base, $factor) {
-    font-size: $factor * $base;
-    h1 {
-        font-size: $factor * $base * 2.75;
-    }
-    h2 {
-        font-size: $factor * $base * 2.25;
-    }
-    h3 {
-        font-size: $factor * $base * 1.75;
-    }
-    h4 {
-        font-size: $factor * $base * 1.25;
-    }
-    h5 {
-        font-size: $factor * $base;
-    }
-    h6 {
-        font-size: $factor * $base * 0.85;
-    }
+@mixin rotate($value) {
+    -webkit-transform: rotate($value);
+    -ms-transform: rotate($value);
+    -moz-transform: rotate($value);
+    transform: rotate($value);
+}
+
+@mixin background-size($size...) {
+    -webkit-background-size: $size;
+    -moz-background-size: $size;
+    -o-background-size: $size;
+    background-size: $size;
 }
 
 @mixin border-box {
@@ -74,6 +63,18 @@
     //-webkit-box-sizing: border-box;
     //-ms-box-sizing: border-box;
     box-sizing: border-box;
+}
+
+@mixin box-shadow($shadow...) {
+    -webkit-box-shadow: $shadow;
+    box-shadow: $shadow;
+}
+
+// Box sizing
+@mixin box-sizing($boxmodel) {
+    -webkit-box-sizing: $boxmodel;
+    -moz-box-sizing: $boxmodel;
+    box-sizing: $boxmodel;
 }
 
 @mixin box-shadow-none {
@@ -94,20 +95,40 @@
     border-radius: $radius;
 }
 
-@mixin error-bg-border {
-    background-color: #F2DEDE;
-    border-color: #EED3D7;
-    //-webkit-border-radius: 4px;
-    //-moz-border-radius: 4px;
-    border-radius: 4px;
+@mixin tab-focus {
+    // Default
+    outline: thin dotted;
+    // WebKit
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
 }
 
-@mixin error-text {
+@mixin clearfix {
+    &:before,
+    &:after {
+        content: " ";
+        // 1
+        display: table;
+        // 2
+   
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin center-block {
     display: block;
-    padding-top: 5px;
-    font-size: 0.85em;
-    font-weight: bold;
-    color: #B94A48;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@mixin text-hide {
+    font: #{0 / 0} a;
+    color: transparent;
+    text-shadow: none;
+    background-color: transparent;
+    border: 0;
 }
 
 @mixin appearance-none {
@@ -132,11 +153,11 @@
 
 @mixin flex($value, $total: null) {
     $flex: 100%;
-    @if not $total {
+    @if $total == null {
         $flex: $value;
     }
     @else if $total >= $value {
-        $flex: $value / $total * 100%;
+        $flex: percentage($value / $total);
     }
     -webkit-flex: $flex;
     -ms-flex: $flex;
@@ -145,11 +166,11 @@
 
 @mixin flex_IEhack($value, $total: null) {
     $flex: 100%;
-    @if not $total {
+    @if $total == null {
         $flex: $value;
     }
     @else if $total >= $value {
-        $flex: $value / $total * 100%;
+        $flex: percentage($value / $total);
     }
     -webkit-flex-grow: 1;
     flex-grow: 1;
@@ -179,4 +200,26 @@
     -ms-flex-direction: $dir;
     -moz-flex-direction: $dir;
     flex-direction: $dir;
+}
+
+@mixin form-control {}
+
+// Creates two color stops, start and end, by specifying a color and position for each color stop.
+// Color stops are not available in IE9 and below.
+@mixin gradient-vertical($start-color: #555555, $end-color: #333333, $start-percent: 0%, $end-percent: 100%) {
+    background-image: -webkit-linear-gradient(top, $start-color $start-percent, $end-color $end-percent);
+    // Safari 5.1-6, Chrome 10+
+    background-image: linear-gradient(to bottom, $start-color $start-percent, $end-color $end-percent);
+    // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=0);
+    // IE9 and down
+}
+
+@mixin gradient-vertical-three-colors($start-color: #00b3ee, $mid-color: #7a43b6, $color-stop: 50%, $end-color: #c3325f) {
+    background-image: -webkit-linear-gradient($start-color, $mid-color $color-stop, $end-color);
+    background-image: linear-gradient($start-color, $mid-color $color-stop, $end-color);
+    background-repeat: no-repeat;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=0);
+    // IE9 and down, gets no color-stop at all for proper fallback
 }

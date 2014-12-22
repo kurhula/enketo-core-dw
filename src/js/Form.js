@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugins', 'enketo-js/extend', 'bootstrap', 'jquery.touchswipe' ],
+define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugins', 'enketo-js/extend', 'jquery.touchswipe' ],
     function( FormModel, widgets, $ ) {
         "use strict";
 
@@ -342,21 +342,25 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 }
 
                 //var profiler = new Profiler('preloads.init()');
-                this.preloads.init( this ); //before widgets.init (as instanceID used in offlineFilepicker widget)
+                // before widgets.init (as instanceID used in offlineFilepicker widget)
+                this.preloads.init( this );
                 //profiler.report();
 
                 this.grosslyViolateStandardComplianceByIgnoringCertainCalcs(); //before calcUpdate!
 
                 //profiler = new Profiler('calcupdate');
-                this.calcUpdate(); //before repeat.init as repeat count may use a calculated item
+                // before repeat.init as repeat count may use a calculated item
+                this.calcUpdate();
                 //profiler.report();
 
                 //profiler = new Profiler('setLangs()');
-                this.langs.init(); //test: before itemsetUpdate
+                // test: before itemsetUpdate
+                this.langs.init();
                 //profiler.report();
 
                 //profiler = new Profiler('repeat.init()');
-                this.repeat.init( this ); //after radio button data-name setting
+                // after radio button data-name setting
+                this.repeat.init( this );
                 //profiler.report();
 
                 //profiler = new Profiler('itemsets initialization');
@@ -368,7 +372,8 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 //profiler.report();
 
                 //profiler = new Profiler('widgets initialization');
-                widgets.init(); //after setAllVals()
+                // after setAllVals()
+                widgets.init();
                 //profiler.report();
 
                 //profiler = new Profiler('bootstrapify');
@@ -376,7 +381,8 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 //profiler.report();
 
                 //profiler = new Profiler('branch.init()');
-                this.branchUpdate(); //after widgets.init()
+                // after widgets.init()
+                this.branchUpdate();
                 //profiler.report();
 
                 this.pages.init(); // after branch.init();
@@ -385,7 +391,9 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 this.outputUpdate();
                 //profiler.report();
 
-                this.setEventHandlers(); //after widgets init to make sure widget handlers are called before
+                // after widgets init to make sure widget handlers are called before
+                // after loading existing instance to not trigger an 'edit' event
+                this.setEventHandlers();
 
                 this.editStatus.set( false );
                 //profiler.report('time taken across all functions to evaluate '+xpathEvalNum+' XPath expressions: '+xpathEvalTime);
@@ -556,13 +564,13 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                             this.toggleButtons( newIndex );
                         }
 
-                        //                            this.$current.addClass( 'fade-out' )
-                        //                                .one( 'transitionend', function() {
-                        //                                    that.$current.removeClass( 'current fade-out' ).parentsUntil( '.or', '.or-group, .or-group-data, .or-repeat' ).removeClass( 'contains-current' );
-                        //                                    that.setToCurrent( pageEl );
-                        //                                    that.focusOnFirstQuestion( pageEl );
-                        //                                    that.toggleButtons( newIndex );
-                        //                                } );
+                        // this.$current.addClass( 'fade-out' )
+                        //     .one( 'transitionend', function() {
+                        //         that.$current.removeClass( 'current fade-out' ).parentsUntil( '.or', '.or-group, .or-group-data, .or-repeat' ).removeClass( 'contains-current' );
+                        //         that.setToCurrent( pageEl );
+                        //         that.focusOnFirstQuestion( pageEl );
+                        //         that.toggleButtons( newIndex );
+                        //     } );
                         // }
                     } else {
                         this.setToCurrent( pageEl );
@@ -865,12 +873,14 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
 
             FormView.prototype.editStatus = {
                 set: function( status ) {
-                    $form.attr( 'data-edited', Boolean( status ) );
-                    $form.trigger( 'edit', status );
+                    // only trigger edit event once
+                    if ( status && status !== $form.data( 'edited' ) ) {
+                        $form.trigger( 'edited' );
+                    }
+                    $form.data( 'edited', status );
                 },
                 get: function() {
-                    console.log( 'form element', $form );
-                    return ( $form.attr( 'data-edited' ) === 'true' ) ? true : false;
+                    return !!$form.data( 'edited' );
                 }
             };
 
@@ -921,22 +931,30 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     selector = [ filter + '[' + attr + ']' ];
                 } else {
                     updated.nodes.forEach( function( node ) {
-                        // The target node name is ALWAYS at the END of a path inside the expression.
-                        // #1: followed by space
-                        selector.push( filter + '[' + attr + '*="/' + node + ' "]' );
-                        // #2: followed by )
-                        selector.push( filter + '[' + attr + '*="/' + node + ')"]' );
-                        // #3: followed by , if used as first parameter of multiple parameters
-                        selector.push( filter + '[' + attr + '*="/' + node + ',"]' );
-                        // #4: at the end of an expression
-                        selector.push( filter + '[' + attr + '$="/' + node + '"]' );
-                        // #5: followed by ] (used in itemset filters)
-                        selector.push( filter + '[' + attr + '*="/' + node + ']"]' );
+                        selector = selector.concat( that.getQuerySelectorsForLogic( filter, attr, node ) );
                     } );
+                    // add all the paths that use the /* selector at end of path
+                    selector = selector.concat( that.getQuerySelectorsForLogic( filter, attr, '*' ) );
                 }
 
                 //TODO: exclude descendents of disabled elements? .find( ':not(:disabled) span.active' )
                 return $collection.find( selector.join() );
+            };
+
+            FormView.prototype.getQuerySelectorsForLogic = function( filter, attr, nodeName ) {
+                return [
+                    // The target node name is ALWAYS at the END of a path inside the expression.
+                    // #1: followed by space
+                    filter + '[' + attr + '*="/' + nodeName + ' "]',
+                    // #2: followed by )
+                    filter + '[' + attr + '*="/' + nodeName + ')"]',
+                    // #3: followed by , if used as first parameter of multiple parameters
+                    filter + '[' + attr + '*="/' + nodeName + ',"]',
+                    // #4: at the end of an expression
+                    filter + '[' + attr + '$="/' + nodeName + '"]',
+                    // #5: followed by ] (used in itemset filters)
+                    filter + '[' + attr + '*="/' + nodeName + ']"]'
+                ];
             };
 
             /**
@@ -1439,7 +1457,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                             } );
                             dataNode.setVal( newVal, null, props.xmlType );
                         } else {
-                            console.error( 'Preload "' + item + '"" not supported. May or may not be a big deal.' );
+                            console.log( 'Preload "' + item + '" not supported. May or may not be a big deal.' );
                         }
                     } );
                     // In addition the presence of certain meta data in the instance may automatically trigger a preload function
@@ -1639,8 +1657,8 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     this.formO = formO;
                     $form.find( '.or-repeat' ).prepend( '<span class="repeat-number"></span>' );
                     $form.find( '.or-repeat:not([data-repeat-fixed])' )
-                        .append( '<div class="repeat-buttons"><button type="button" class="btn btn-default repeat"><i class="glyphicon glyphicon-plus"> </i></button>' +
-                            '<button type="button" disabled class="btn btn-default remove"><i class="glyphicon glyphicon-minus"> </i></button></div>' );
+                        .append( '<div class="repeat-buttons"><button type="button" class="btn btn-default repeat"><i class="icon icon-plus"> </i></button>' +
+                            '<button type="button" disabled class="btn btn-default remove"><i class="icon icon-minus"> </i></button></div>' );
 
                     //delegated handlers (strictly speaking not required, but checked for doubling of events -> OK)
                     $form.on( 'click', 'button.repeat:enabled', function() {
@@ -1898,18 +1916,14 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 } );
 
                 model.$.on( 'dataupdate', function( event, updated ) {
-                    // console.log( 'dataupdate', updated );
                     that.calcUpdate( updated ); //EACH CALCUPDATE THAT CHANGES A VALUE TRIGGERS ANOTHER CALCUPDATE => INEFFICIENT
                     that.branchUpdate( updated );
                     that.outputUpdate( updated );
                     that.itemsetUpdate( updated );
-                } );
-
-                // edit is fired when the form changes due to user input or repeats added/removed
-                // branch update doesn't require detection as it always happens as a result of an event that triggers change or changerepeat.
-                $form.on( 'change addrepeat removerepeat', function( event ) {
+                    // edit is fired when the model changes after the form has been initialized
                     that.editStatus.set( true );
                 } );
+
 
                 $form.on( 'addrepeat', function( event, index ) {
                     var $clone = $( event.target );
