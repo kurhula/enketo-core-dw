@@ -84,8 +84,8 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
                     showMeridian: false
                 } )
                 .val( timeVal )
-            //the time picker itself has input elements
-            .closest( '.widget' ).find( 'input' ).addClass( 'ignore' );
+                //the time picker itself has input elements
+                .closest( '.widget' ).find( 'input' ).addClass( 'ignore' );
 
             this._setManualHandler( $fakeDateI );
             this._setFocusHandler( $fakeDateI.add( $fakeTimeI ) );
@@ -144,7 +144,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
                     '<div class="bootstrap-timepicker">' +
                     '<input class="ignore timepicker-default input-small" readonly="readonly" type="text" value="' +
                     timeVal + '" placeholder="hh:mm"/>' +
-                    '<button class="btn-reset"><i class="glyphicon glyphicon-refresh"> </i></button>' +
+                    '<button class="btn-icon-only btn-reset" type="button"><i class="icon icon-refresh"> </i></button>' +
                     '</div>' ),
                 $fakeTimeI = $fakeTime.find( 'input' );
 

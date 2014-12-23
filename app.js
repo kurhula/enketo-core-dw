@@ -6,19 +6,17 @@ requirejs.config( {
         "enketo-config": "../config.json",
         "text": "text/text",
         "xpath": "xpath/build/xpathjs_javarosa",
-        "file-manager": "file-manager/src/file-manager",
+        "file-manager": "../src/js/file-manager",
+        "jquery": "bower-components/jquery/dist/jquery",
         "jquery.xpath": "jquery-xpath/jquery.xpath",
         "jquery.touchswipe": "jquery-touchswipe/jquery.touchSwipe",
         "leaflet": "leaflet/leaflet",
-        "bootstrap-slider": "bootstrap-slider/js/bootstrap-slider"
+        "bootstrap-slider": "bootstrap-slider/js/bootstrap-slider",
+        "q": "bower-components/q/q"
     },
     shim: {
         "xpath": {
             exports: "XPathJS"
-        },
-        "bootstrap": {
-            deps: [ "jquery" ],
-            exports: "jQuery.fn.popover"
         },
         "widget/date/bootstrap3-datepicker/js/bootstrap-datepicker": {
             deps: [ "jquery" ],
@@ -46,11 +44,43 @@ define('bootstrap', [], function() {
     return jQuery;
 });
 
+function getFormData(data) {
+    var formData = new FormData();
+    formData.append("form_data", data);
+    formData.append("form_code", questionnaire_code);
+    return addAttachmentData(formData);
+}
+
+function addAttachmentData(formData) {
+    var retainFiles = [];
+    var mediaInputs = $('form.or input[type="file"]')
+    if (!mediaInputs)
+        return formData;
+
+    mediaInputs.each(function () {
+        var file = this.files[0];
+        //Take the latest selected file for upload
+        if (file) {
+            formData.append(file.name, file);
+        }
+        if (submissionUpdateUrl) {
+            var fileNotChangedDuringEdit = $(this).attr('data-loaded-file-name');
+            if (fileNotChangedDuringEdit) {
+                retainFiles.push(fileNotChangedDuringEdit);
+            }
+        }
+    });
+    if (retainFiles.length > 0)
+        formData.append("retain_files", retainFiles);
+
+    return formData;
+}
+
 function saveXformSubmission(callback) {
     form.validate();
     if (form.isValid()){
         DW.loading();
-        var data = form.getDataStr();
+        var dataXml = form.getDataStr();
         var saveURL = submissionUpdateUrl || submissionCreateUrl;
 
         var success = function (data, status) {
@@ -64,13 +94,21 @@ function saveXformSubmission(callback) {
         var error = function(){
             DW.trackEvent('advanced-qns-submission', 'advanced-qns-submission-failure');
         };
-
-        $.post(saveURL, {'form_data': data, 'form_code': questionnaire_code}).done(success).fail(error);
+        var formData = getFormData(dataXml);
+        $.ajax({
+            url: saveURL,
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: success,
+            error: error
+        });
     }
 }
-requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
-    function( $, Modernizr, Form ) {
-        var loadErrors, form;
+requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form', 'file-manager' ],
+    function( $, Modernizr, Form, fileManager ) {
+        var loadErrors, form, formStr, modelStr;
 
         //if querystring touch=true is added, override Modernizr
         if ( getURLParameter( 'touch' ) === 'true' ) {
@@ -94,6 +132,7 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form' ],
         //validate handler for validate button
         $( '#validate-form' ).on( 'click', function() {
             saveXformSubmission();
+                console.log( 'media files:', fileManager.getCurrentFiles() );
         });
 
         //initialize the form

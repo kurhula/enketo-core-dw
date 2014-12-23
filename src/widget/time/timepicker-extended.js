@@ -53,7 +53,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
                 timeVal = $( this.element ).val(),
                 $fakeTime = $( '<div class="widget bootstrap-timepicker">' +
                     '<input class="ignore timepicker-default input-small" readonly="readonly" type="text" value="' + timeVal + '" placeholder="hh:mm" />' +
-                    '<button class="btn-reset"><i class="glyphicon glyphicon-refresh"> </i></button></div>' ),
+                    '<button class="btn-icon-only btn-reset" type="button"><i class="icon icon-refresh"> </i></button></div>' ),
                 $fakeTimeReset = $fakeTime.find( '.btn-reset' ),
                 $fakeTimeI = $fakeTime.find( 'input' );
 
@@ -61,11 +61,11 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
             $timeI.hide().after( $fakeTime );
 
             $fakeTimeI.timepicker( {
-                defaultTime: ( timeVal.length > 0 ) ? timeVal : 'current',
-                showMeridian: false
-            } ).val( timeVal )
-            //the time picker itself has input elements
-            .closest( '.widget' ).find( 'input' ).addClass( 'ignore' );
+                    defaultTime: ( timeVal.length > 0 ) ? timeVal : 'current',
+                    showMeridian: false
+                } ).val( timeVal )
+                //the time picker itself has input elements
+                .closest( '.widget' ).find( 'input' ).addClass( 'ignore' );
 
             $fakeTimeI.on( 'change', function() {
                 var $this = $( this ),
@@ -73,7 +73,6 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
                     val = ( /^[0-9]:/.test( $this.val() ) ) ? '0' + $this.val() : $this.val();
                 // add 00 minutes if they are missing (probably a bug in bootstrap timepicker)
                 val = ( /^[0-9]{2}:$/.test( val ) ) ? val + '00' : val;
-                console.debug( 'time val to be entered: ', val );
                 $timeI.val( val ).trigger( 'change' ).blur();
                 return false;
             } );

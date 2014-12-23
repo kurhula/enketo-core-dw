@@ -1,25 +1,24 @@
 .enketo-geopoint-marker {
     $size: 24px;
+    @extend .icon-marker;
+    @extend .icon;
     margin-top: -#{$size};
-    &::after {
-        content: "\e062";
-        position: relative;
-        display: inline-block;
-        font-family: 'Glyphicons Halflings';
-        font-style: normal;
-        font-weight: 400;
-        line-height: 1;
-        color: rgb(80, 142, 205);
-        font-size: $size;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
+    width: $size;
+    height: $size;
+    font-size: $size;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-align: center;
+    color: rgb(80, 142, 205);
 }
 
 .enketo-area-popup {
     .leaflet-popup-content-wrapper {
-        opacity: 0.8;
         border-radius: 2px;
+        color: black;
+        background: none;
+        box-shadow: none;
     }
     .leaflet-popup-content {
         margin: 3px 20px;
@@ -29,9 +28,18 @@
     }
 }
 
-.leaflet-container .enketo-area-popup a.leaflet-popup-close-button {
-    z-index: 1;
-    color: #555555;
+.leaflet-container .enketo-area-popup {
+    &:hover {
+        a.leaflet-popup-close-button {
+            display: block;
+        }
+    }
+    a.leaflet-popup-close-button {
+        z-index: 1;
+        display: none;
+        font-weight: normal;
+        color: black;
+    }
 }
 
 .enketo-geopoint-circle-marker {
@@ -59,7 +67,7 @@
     $map-width: 65%;
     $input-width: 27%;
     $separator-width: 4%;
-    $detect-width: 40px;
+    //$detect-width: 40px;
     margin-top: 25px;
     img {
         //undo global settings
@@ -68,11 +76,24 @@
         max-width: none;
     }
     .geo-inputs {
+        position: relative;
         min-width: 160px;
         width: $input-width;
         margin: 0 $separator-width 0 0;
         @media screen and (max-width: 700px) {
             width: 100%;
+        }
+        .paste-progress, .disabled-msg {
+            position: absolute;
+            display: block;
+            top: 50%;
+            width: calc(100% - 20px);
+            text-align: center;
+            margin: 0px 10px;
+        }
+        .disabled-msg {
+            display: none;
+            color: $state-danger-text;
         }
     }
     .map-canvas-wrapper {
@@ -92,29 +113,49 @@
     }
     .search-bar {
         margin-top: 0;
+        .input-group {
+            position: relative;
+            display: table;
+            border-collapse: separate;
+            width: 80%;
+        }
         [name="search"] {
             margin: 0 !important;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+            float: left;
+            display: table-cell;
         }
         .hide-map-btn {
             display: none;
         }
-    }
-    .btn:not(.close-chain-btn) {
-        height: 34px;
-        padding-bottom: 4px;
-        &[name="geodetect"] {
-            display: inline-block;
-            float: right;
-            font-size: 16px;
-            margin: 0 0 0 $separator-width;
-            width: $detect-width;
+        .search-btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            display: table-cell;
         }
+    }
+    .btn:not(.close-chain-btn):not(.toggle-input-type-btn) {
+        height: 34px;
+        //padding-bottom: 4px;
+   
+    }
+    .btn[name="geodetect"] {
+        display: inline-block;
+        float: right;
+        font-size: 16px;
+        margin: 0 0 0 $separator-width;
+        //width: $detect-width;
+   
     }
     .close-chain-btn {
         @include font-normal;
         float: right;
+        padding: 0 5px;
+        margin-left: 15px;
     }
-    .toggle-input-btn {
+    .toggle-input-visibility-btn {
         $input-button-border: 2px solid #aaaaaa;
         position: absolute;
         top: calc(50% - 15px);
@@ -138,10 +179,6 @@
         padding-bottom: 15px;
     }
     .point {
-        //height: 34px;
-        //font-size: 10px;
-        //vertical-align: bottom;
-        //padding-top: 9px;
         @extend .enketo-geopoint-circle-marker;
         margin-right: 10px;
         display: inline-block;
@@ -189,13 +226,13 @@
         border: none;
         padding: 0;
         margin: 15px 0 0 0;
-        &:nth-of-type(1) {
+        &.lat, &.kml {
             padding-top: 5px;
         }
-        &:nth-of-type(2) {
+        &.long {
             margin-bottom: 20px;
         }
-        &:nth-of-type(3) {
+        &.alt {
             border-top: solid 1px $groupline;
             padding: 12px 0 0 0;
             margin: 0 0 0 0;
@@ -203,41 +240,82 @@
                 border-top: none;
             }
         }
-        &:nth-of-type(4) {
+        &.acc {
             padding: 0;
             margin: 5px 0 0 0;
         }
-        &:nth-of-type(3), &:nth-of-type(4) {
+        &.alt, &.acc {
             min-height: 70px;
             line-height: 50px;
             font-size: 0.75 * $font-size-base;
         }
     }
-    input {
-        &[name="lat"],&[name="long"] {
-            float: none;
-            @include border-box;
-            width: 100%;
-            &:invalid {
-                //copied from bootstrap
-                color: $state-danger-text;
-                border-color: $state-danger-text;
-                @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
-                // Redeclare so transitions work
-                &:focus {
-                    border-color: darken($state-danger-text, 10%);
-                    $shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px lighten($state-danger-text, 20%);
-                    @include box-shadow($shadow);
-                }
+    input[name="lat"],input[name="long"],textarea[name="kml"] {
+        float: none;
+        @include border-box;
+        width: 100%;
+        /*&:invalid {
+            //copied from bootstrap
+            color: $state-danger-text;
+            border-color: $state-danger-text;
+            @include box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
+            // Redeclare so transitions work
+            &:focus {
+                border-color: darken($state-danger-text, 10%);
+                $shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px lighten($state-danger-text, 20%);
+                @include box-shadow($shadow);
             }
+        }*/
+    }
+    input[name="alt"], input[name="acc"] {
+        @include border-box;
+        display: block;
+        float: right;
+        width: 40%;
+        @media screen and (max-width: 700px) {
+            width: 50%;
         }
-        &[name="alt"], &[name="acc"] {
-            @include border-box;
+    }
+    textarea[name="kml"] {
+        min-height: 260px;
+        overflow: auto;
+        &:disabled + .disabled-msg {
             display: block;
-            float: right;
-            width: 40%;
-            @media screen and (max-width: 700px) {
-                width: 50%;
+        }
+    }
+    .geo.kml {
+        display: none;
+        margin-bottom: 10px;
+    }
+    .toggle-input-type-btn {
+        border: none;
+        background: none;
+        color: #ccc;
+        position: absolute;
+        top: -10px;
+        right: 0;
+        @include font-normal;
+        font-size: 12px;
+        .kml-input {
+            display: block;
+        }
+        .points-input {
+            display: none;
+        }
+    }
+    .kml-input-mode {
+        .geo {
+            display: none;
+        }
+        .geo.kml {
+            display: block;
+        }
+        .toggle-input-type-btn {
+            .kml-input {
+                display: none;
+            }
+            .points-input {
+                display: block;
             }
         }
     }
@@ -283,10 +361,10 @@
         margin-top: 0;
         padding-top: 25px;
         .geo-inputs {
-            width: 160px;
-            margin-left: 10px;
+            //width: 160px;
+            margin-left: 25px;
             margin-bottom: 15px;
-            .geo {
+            .geo, .toggle-input-type-btn {
                 display: none;
             }
             .close-chain-btn {
@@ -328,6 +406,12 @@
                 width: 70px;
                 margin-left: 15px;
             }
+            [name="search"] {
+                width: auto;
+            }
+            .input-group {
+                width: auto;
+            }
         }
         .points {
             display: none;
@@ -343,13 +427,27 @@
         text-align: center;
         font-size: 20px;
     }
+    .leaflet-control-layers-list {
+        label {
+            margin-bottom: 5px;
+        }
+    }
     &:not(.full-screen).hide-input {
+        &.wide {
+            .map-canvas {
+                height: 375px;
+            }
+        }
         .geo-inputs .geo {
+            display: none;
+        }
+        .toggle-input-type-btn {
             display: none;
         }
         .close-chain-btn {
             float: none;
-            margin: 5px 0 5px 20px;
+            //margin: 5px 0 5px 20px;
+       
         }
         .btn-remove {
             margin: 10px 0 5px 0;
@@ -359,6 +457,21 @@
             float: none;
             border-left: none;
             padding-left: 0;
+        }
+        .map-canvas .show-map-btn {
+            margin-top: 170px;
+        }
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .full-screen.geopicker .search-bar {
+        .search-btn {
+            display: none;
+        }
+        [name=search] {
+            border-top-right-radius: $border-radius-base;
+            border-bottom-right-radius: $border-radius-base;
         }
     }
 }
