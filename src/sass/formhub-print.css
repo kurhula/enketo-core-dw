@@ -83,14 +83,11 @@ label, legend, .trigger, .note {
   background: none;
   color: black;
   padding: 5px 5px 12px 5px; }
-.or label > span.or-hint.active {
-  color: black;
-  display: block; }
 .or .required {
   float: right; }
 .or .or-repeat {
   background: none; }
-.or input:not([type="radio"]):not([type="checkbox"]), .or select, .or textarea {
+.or input[type=text], .or input[type=password], .or input[type=url], .or input[type=email], .or input[type=file], .or input[type=date], .or input[type=time], .or input[type=datetime], .or input[type=number], .or select, .or textarea {
   border-radius: 0px;
   box-shadow: none;
   -moz-appearance: none;
@@ -101,10 +98,17 @@ label, legend, .trigger, .note {
   border-bottom: 1px solid black; }
 .or input[type="file"] {
   display: none !important; }
-.or .or-hint.active {
+.or .or-hint.active, .or .or-hint.or-form-print.active {
+  color: black;
+  display: block;
   padding-top: 5px;
   margin-top: 0;
   line-height: 1em; }
+.or .or-hint.or-form-print.active {
+  border: 1px dotted black;
+  padding: 1px;
+  margin-top: 5px;
+  font-size: 10px; }
 
 .invalid-constraint, .invalid-required {
   background: none;
@@ -222,3 +226,5 @@ h3, h4 {
 .question:not(.or-appearance-label):not(.or-appearance-compact):not(.or-appearance-quickcompact) label input[type=radio]:checked ~ .option-label::before {
   content: '\e606' !important;
   color: black; }
+
+/*# sourceMappingURL=formhub-print.css.map */
