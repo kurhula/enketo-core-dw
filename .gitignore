@@ -13,3 +13,5 @@ src/widget/geopoint-gmaps/geopointpicker.css
 src/sass/core/*.css
 lib/bootstrap-sass/bootstrap/*.css
 *.map
+*.css
+
