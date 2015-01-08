@@ -178,10 +178,11 @@ module.exports = function( grunt ) {
             main: {
                 files: [
                     {expand: true, flatten: true, src: ['build/js/app.js'], dest: '../datawinners/media/javascript/', filter: 'isFile'},
-                    {expand: true, flatten: true, src: ['build/css/formhub.css'], dest: '../datawinners/media/css/scss/', filter: 'isFile'},
+                    {expand: true, flatten: true, src: ['build/css/'], dest: '../datawinners/media/css/scss/enketo_css/', filter: 'isFile'},
+                    {expand: true, flatten: true, src: ['build/css/*'], dest: '../datawinners/media/css/scss/enketo_css/', filter: 'isFile'},
 
-                    {expand: true, flatten: true, src: ['lib/bootstrap-sass/fonts/'], dest: '../datawinners/media/css/font/', filter: 'isFile'},
-                    {expand: true, flatten: true, src: ['lib/bootstrap-sass/fonts/*'], dest: '../datawinners/media/css/font/', filter: 'isFile'}
+                    {expand: true, flatten: true, src: ['build/fonts/'], dest: '../datawinners/media/css/font/', filter: 'isFile'},
+                    {expand: true, flatten: true, src: ['build/fonts/*'], dest: '../datawinners/media/css/font/', filter: 'isFile'}
 
                 ]
             }
