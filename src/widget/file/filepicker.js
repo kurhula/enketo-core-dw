@@ -143,7 +143,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
     Filepicker.prototype._showPreview = function( url, mediaType ) {
         var $el;
 
-        this.$widget.find( '.file-preview' ).empty();
+
 
         switch ( mediaType ) {
             case 'image/*':
@@ -161,6 +161,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         }
 
         if ( url ) {
+            this.$widget.find( '.file-preview' ).empty();
             this.$preview.append( $el.attr( 'src', url ) );
         }
     };
