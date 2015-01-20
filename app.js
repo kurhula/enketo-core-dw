@@ -53,7 +53,7 @@ function getFormData(data) {
 
 function addAttachmentData(formData) {
     var retainFiles = [];
-    var mediaInputs = $('form.or input[type="file"]')
+    var mediaInputs = $('form.or input[type="file"]');
     if (!mediaInputs)
         return formData;
 
