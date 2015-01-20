@@ -92,7 +92,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
 
     Filepicker.prototype._getMaxSubmissionSize = function() {
         var maxSize = $( document ).data( 'maxSubmissionSize' );
-        return maxSize || 20 * 1024 * 1024;
+        return maxSize || 5 * 1024 * 1024;
     };
 
     Filepicker.prototype._changeListener = function() {
