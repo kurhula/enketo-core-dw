@@ -116,7 +116,7 @@ define( [ "q", "jquery" ], function( Q, $ ) {
      */
     function _getMaxSize() {
         if ( !maxSize ) {
-            maxSize = $( document ).data( 'maxSubmissionSize' ) || 5 * 1024 * 1024;
+            maxSize = $( document ).data( 'maxSubmissionSize' ) || 20 * 1024 * 1024;
         }
         return maxSize;
     }
