@@ -38,6 +38,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
             that = this;
 
         this.mediaType = $input.attr( 'accept' );
+        if (! this.mediaType) this.mediaType = $input.attr( 'data' );
 
         $input
             .attr( 'disabled', 'disabled' )
