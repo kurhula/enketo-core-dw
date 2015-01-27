@@ -127,6 +127,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 return false;
             }
 
+            $(this).removeAttr( 'data-loaded-file-name' );
+
             // process the file
             fileManager.getFileUrl( file )
                 .then( function( url ) {
@@ -178,7 +180,6 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         if ( url ) {
 //            Clearing preview before updating
             this.$preview.empty();
-            $(this).removeAttr( 'data-loaded-file-name' );
             this.$preview.append( $el.attr( 'src', url ) );
         }
     };
