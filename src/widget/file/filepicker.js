@@ -57,8 +57,19 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         this.$fakeInput = this.$widget.find( '.fake-file-input' );
 
         // show loaded file name regardless of whether widget is supported
+        this.downloadFileOnEdit = function(existingFileName){
+            var submission_id = $('document').context.defaultView.surveyResponseId;
+            this._showFileName( existingFileName, this.mediaType );
+            var location_image = "/download/attachment/"+submission_id+"/"+existingFileName;
+            this.$widget.append('<a href="'+location_image+'">'+existingFileName+'</a>');
+            this.$widget.append('<img src="'+location_image+'"alt=" ">');
+        };
+
+
+        // show loaded file name regardless of whether widget is supported
         if ( existingFileName ) {
             this._showFileName( existingFileName, this.mediaType );
+            this.downloadFileOnEdit(existingFileName);
         }
 
         if ( !fileManager || !fileManager.isSupported() ) {
