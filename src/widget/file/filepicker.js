@@ -60,9 +60,11 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         this.downloadFileOnEdit = function(existingFileName){
             var submission_id = $('document').context.defaultView.surveyResponseId;
             this._showFileName( existingFileName, this.mediaType );
-            var location_image = "/download/attachment/"+submission_id+"/"+existingFileName;
-            this.$widget.append('<a href="'+location_image+'">'+existingFileName+'</a>');
-            this.$widget.append('<img src="'+location_image+'"alt=" ">');
+            var location_image = "/download/attachment/"+submission_id+"/";
+            this.$preview.append('<a href="'+location_image+existingFileName+'" class="edit_link">'+existingFileName+'</a>');
+            if (this.mediaType == "image/*"){
+                this.$preview.append("<img src='"+location_image+"preview_"+existingFileName+"'/>");
+            }
         };
 
 
