@@ -129,10 +129,13 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
             if (file == undefined) {
                 event.stopPropagation();
                 $( this )[0].files = old_files;
+                if ($input.val()==''){
+                    that.$preview.empty();
+                    $input.trigger( 'change.file' );
+                }
                 event.preventDefault();
                 return false;
             }
-
             // trigger eventhandler to update instance value
             if ( event.namespace === 'passthrough' ) {
                 $input.trigger( 'change.file' );
