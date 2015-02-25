@@ -158,14 +158,22 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 .catch( function( error ) {
                     $input.val( '' );
                     that._showPreview( null );
+                    that._showFileName( null );
                     that._showFeedback( error.message, 'error' );
+                    $input.trigger( 'change.passthrough' );
                 } );
         } );
     };
 
     Filepicker.prototype._showFileName = function( file ) {
-        var fileName = ( typeof file === 'object' && file.name ) ? file.name : file;
-        this.$fakeInput.text( fileName );
+        if (file){
+            var fileName = ( typeof file === 'object' && file.name ) ? file.name : file;
+            this.$fakeInput.text( fileName );
+        }
+        else {
+
+            this.$fakeInput.text( '' );
+        }
     };
 
     Filepicker.prototype._showFeedback = function( message, status ) {
@@ -194,10 +202,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 $el = $( '<span>No preview for this mediatype</span>' );
                 break;
         }
-
+        this.$preview.empty();
         if ( url ) {
 //            Clearing preview before updating
-            this.$preview.empty();
             this.$downloadLink.empty();
             this.$preview.append( $el.attr( 'src', url ) );
         }
