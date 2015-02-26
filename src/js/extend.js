@@ -33,7 +33,7 @@ define( function( window ) {
 
         offset.minstotal = this.getTimezoneOffset();
         offset.direction = ( offset.minstotal < 0 ) ? '+' : '-';
-        offset.hrspart = pad2( Math.abs( Math.floor( offset.minstotal / 60 ) ) );
+        offset.hrspart = pad2( Math.abs( Math.floor( Math.abs(offset.minstotal) / 60 ) ) );
         offset.minspart = pad2( Math.abs( Math.floor( offset.minstotal % 60 ) ) );
 
         return new Date( this.getTime() - ( offset.minstotal * 60 * 1000 ) ).toISOString()
