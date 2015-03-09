@@ -134,6 +134,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 $( this )[0].files = old_files;
                 if ($input.val()==''){
                     that.$preview.empty();
+                    $(this).removeAttr( 'data-loaded-file-name' );
+                    that._showFileName( null );
                     $input.trigger( 'change.file' );
                 }
                 event.preventDefault();
