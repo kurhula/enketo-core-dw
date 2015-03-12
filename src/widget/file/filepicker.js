@@ -151,6 +151,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 if ($input.val()==''){
                     that.$preview.empty();
                     that.$deleteButton.remove();
+                    that.$downloadLink.remove();
                     $(this).removeAttr( 'data-loaded-file-name' );
                     that._showFileName( null );
                     $input.trigger( 'change.file' );

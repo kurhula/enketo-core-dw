@@ -43,6 +43,8 @@ define( [ 'jquery' ], function( $ ) {
         return this.each( function() {
             //remove media previews
             $( this ).find( '.file-preview' ).remove();
+            $( this ).find( '.remove-file' ).remove();
+            $( this ).find( '.get-image-link' ).remove();
             //remove input values
             $( this ).find( 'input, select, textarea' ).each( function() {
                 var type = $( this ).attr( 'type' );
@@ -69,9 +71,7 @@ define( [ 'jquery' ], function( $ ) {
                         /* falls through */
                     case 'hidden':
                     case 'textarea':
-                        if ( $( this ).val() !== '' ) {
                             $( this ).val( '' ).trigger( ev );
-                        }
                         break;
                     case 'radio':
                     case 'checkbox':
