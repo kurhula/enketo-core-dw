@@ -147,7 +147,6 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
             // To handle cancel issue on webkit browsers
             if (file == undefined) {
                 event.stopPropagation();
-                $( this )[0].files = old_files;
                 if ($input.val()==''){
                     that.$preview.empty();
                     that.$deleteButton.remove();
@@ -155,6 +154,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                     $(this).removeAttr( 'data-loaded-file-name' );
                     that._showFileName( null );
                     $input.trigger( 'change.file' );
+                }
+                else {
+                    $( this )[0].files = old_files;
                 }
                 event.preventDefault();
                 return false;

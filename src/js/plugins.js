@@ -40,7 +40,11 @@ define( [ 'jquery' ], function( $ ) {
      */
     $.fn.clearInputs = function( ev ) {
         ev = ev || 'edit';
+        var is_clone = false;
         return this.each( function() {
+            if($( this ).find( '.file-preview').length > 0){
+                is_clone = true
+            }
             //remove media previews
             $( this ).find( '.file-preview' ).remove();
             $( this ).find( '.remove-file' ).remove();
@@ -71,7 +75,9 @@ define( [ 'jquery' ], function( $ ) {
                         /* falls through */
                     case 'hidden':
                     case 'textarea':
+                        if ( is_clone === false) {
                             $( this ).val( '' ).trigger( ev );
+                        }
                         break;
                     case 'radio':
                     case 'checkbox':

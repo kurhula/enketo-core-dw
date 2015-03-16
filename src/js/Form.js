@@ -1743,6 +1743,9 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
 
                     $clone.clearInputs( '' );
 
+                    // Re-initiate widgets in clone after default values have been set
+                    widgets.destroy( $clone );
+                    widgets.init( $clone );
                     // Note: in http://formhub.org/formhub_u/forms/hh_polio_survey_cloned/form.xml a parent group of a repeat
                     // has the same ref attribute as the nodeset attribute of the repeat. This would cause a problem determining 
                     // the proper index if .or-repeat was not included in the selector
@@ -1775,9 +1778,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     // this will trigger setting default values and other stuff
                     $clone.trigger( 'addrepeat', index + 1 );
 
-                    // Re-initiate widgets in clone after default values have been set
-                    widgets.destroy( $clone );
-                    widgets.init( $clone );
+
 
                     //p.report();
                     return true;
