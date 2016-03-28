@@ -26,15 +26,14 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
          * or private) because only one instance will be created at a time.
          *
          * @param {string} formSelector  jquery selector for the form
-         * @param {string} dataStr       <instance> as XML string
-         * @param {?string=} dataStrToEdit <instance> as XML string that is to be edit. This may not be a complete instance (empty nodes could be missing) and may have additional nodes.
-         * @param { ?boolean= } unsubmitted    whether the dataStrToEdit has been submitted to the OpenRosa server before
+         * @param {{modelStr: string, ?instanceStr: string, ?unsubmitted: boolean, ?external: <{id: string, xmlStr: string }> }} data data object containing model, (partial) instance-to-load, external data and flag about whether instance-to-load has already been submitted before.
          *
          * @constructor
          */
 
-        function Form( formSelector, dataStr, dataStrToEdit, unsubmitted ) {
-            var model, dataToEdit, cookies, form, $form, $formClone, repeatsPresent, fixExpr, _getMaxSize,
+
+        function Form( formSelector, data ) {
+            var model, dataToEdit, cookies, form, $form, $formClone, repeatsPresent, fixExpr,
                 loadErrors = [];
 
             /**
@@ -47,7 +46,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 // cloning children to keep any delegated event handlers on 'form.or' intact upon resetting
                 $formClone = $( formSelector ).clone().appendTo( '<original></original>' );
 
-                model = new FormModel( dataStr );
+                model = new FormModel( data.modelStr, data.external );
                 form = new FormView( formSelector );
 
                 //var profiler = new Profiler('model.init()');
@@ -55,8 +54,8 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
 
                 //profiler.report();
 
-                if ( typeof dataStrToEdit !== 'undefined' && dataStrToEdit && dataStrToEdit.length > 0 ) {
-                    dataToEdit = new FormModel( dataStrToEdit );
+                if ( data.instanceStr ) {
+                    dataToEdit = new FormModel( data.instanceStr );
                     loadErrors = loadErrors.concat( dataToEdit.init() );
                     this.load( dataToEdit );
                 }
@@ -65,10 +64,6 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 //profiler = new Profiler('html form.init()');
                 form.init();
                 //profiler.report();
-
-                if ( loadErrors.length > 0 ) {
-                    console.error( 'loadErrors: ', loadErrors );
-                }
 
                 if ( window.scrollTo ) {
                     window.scrollTo( 0, 0 );
@@ -85,6 +80,9 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
             };
             this.getInstanceID = function() {
                 return model.getInstanceID();
+            };
+            this.getInstanceName = function() {
+                return model.getInstanceName();
             };
             this.getView = function() {
                 return form;
@@ -196,7 +194,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     // file cannot be found in the local filesystem.
                     // To avoid showing this error message in that particular case, 
                     // we cheat and pretend the XML data type is the plain old 'string'
-                    if ( !unsubmitted ) {
+                    if ( !data.unsubmitted ) {
                         xmlDataType = ( xmlDataType === 'binary' ) ? 'string' : xmlDataType;
                     }
 
@@ -281,7 +279,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 }
 
                 // if record is not local, copy instanceID value to deprecatedID and empty instanceID
-                if ( !unsubmitted ) {
+                if ( !data.unsubmitted ) {
                     // add deprecatedID node
                     if ( model.node( '*>meta>deprecatedID' ).get().length !== 1 ) {
                         var deprecatedIDXMLNode = $.parseXML( "<deprecatedID/>" ).documentElement;
@@ -755,8 +753,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                         return;
                     } else {
                         // why not use this.getIndex?
-                        $inputNodes = this.getWrapNodes( $form.find( '[name="' + name + '"]' ).eq( index ) ).find( 'input, select, textarea' );
-                        // console.log( 'input nodes with', name, $form.find( '[name="' + name + '"]' ) );
+                        $inputNodes = this.getWrapNodes( $form.find( '[name="' + name + '"]' ).eq( index ) ).find( '[name="' + name + '"]' );
                         type = this.getInputType( $inputNodes.eq( 0 ) );
 
                         if ( type === 'file' ) {
@@ -793,11 +790,14 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
              *  Since not all data nodes with a value have a corresponding input element, it could be considered to turn this
              *  around and cycle through the HTML form elements and check for each form element whether data is available.
              */
-            FormView.prototype.setAllVals = function() {
+            FormView.prototype.setAllVals = function( $group, groupIndex ) {
                 var index, name, value,
-                    that = this;
+                    that = this,
+                    selector = ( $group && $group.attr( 'name' ) ) ? $group.attr( 'name' ) : null;
 
-                model.node( null, null, {
+                groupIndex = ( typeof groupIndex !== 'undefined' ) ? groupIndex : null;
+
+                model.node( selector, groupIndex, {
                     noEmpty: true
                 } ).get().each( function() {
                     try {
@@ -1168,7 +1168,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 clonedRepeatsPresent = ( repeatsPresent && $form.find( '.or-repeat.clone' ).length > 0 ) ? true : false;
 
                 $nodes.each( function() {
-                    var $htmlItem, $htmlItemLabels, /**@type {string}*/ value, $instanceItems, index, context,
+                    var $htmlItem, $htmlItemLabels, /**@type {string}*/ value, $instanceItems, index, context, labelRefValue,
                         $template = $( this ),
                         newItems = {},
                         prevItems = $template.data(),
@@ -1222,6 +1222,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     $( this ).parent( 'select' ).siblings( '.or-option-translations' ).empty();
 
                     $instanceItems.each( function() {
+                        labelRefValue = $( this ).children( labelRef ).text();
                         $htmlItem = $( '<root/>' );
                         $template
                             .clone().appendTo( $htmlItem )
@@ -1229,9 +1230,9 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                             .addClass( 'itemset' )
                             .removeAttr( 'data-items-path' );
 
-                        $htmlItemLabels = ( labelType === 'itext' ) ?
-                            $labels.find( '[data-itext-id="' + $( this ).children( labelRef ).text() + '"]').addClass('option-label').clone() :
-                            $( '<span class="active" lang="">' + $( this ).children( labelRef ).text() + '</span>' );
+                        $htmlItemLabels = ( labelType === 'itext' && $labels.find( '[data-itext-id="' + labelRefValue + '"]' ).length > 0 ) ?
+                            $labels.find( '[data-itext-id="' + labelRefValue + '"]' ).clone() :
+                            $( '<span class="option-label active" lang="">' + labelRefValue + '</span>' );
 
                         value = $( this ).children( valueRef ).text();
                         $htmlItem.find( '[value]' ).attr( 'value', value );
@@ -1554,6 +1555,13 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
 
                         for ( i = c.length - 1; i >= 0; i-- ) {
                             C = c[ i ].split( '=' );
+                            // decode URI
+                            C[ 1 ] = decodeURIComponent( C[ 1 ] );
+                            // if cookie is signed (using expressjs/cookie-parser/), extract value
+                            if ( C[ 1 ].substr( 0, 2 ) === 's:' ) {
+                                C[ 1 ] = C[ 1 ].slice( 2 );
+                                C[ 1 ] = C[ 1 ].slice( 0, C[ 1 ].lastIndexOf( '.' ) );
+                            }
                             cookies[ C[ 0 ] ] = decodeURIComponent( C[ 1 ] );
                         }
 
@@ -1718,16 +1726,15 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                  */
                 clone: function( $node, animate ) {
                     //var p = new Profiler('repeat cloning');
-                    var $master, $clone, $parent, index, radioNames, i, path, timestamp, duration,
+                    var $siblings, $master, $clone, index, radioNames, i, path, timestamp,
                         that = this;
 
-                    duration = ( animate === false ) ? 0 : 400;
                     if ( $node.length !== 1 ) {
                         console.error( 'Nothing to clone' );
                         return false;
                     }
-                    $parent = $node.parent( '.or-group, .or-group-data' );
-                    $master = $parent.children( '.or-repeat:not(.clone)' ).eq( 0 );
+                    $siblings = $node.siblings( '.or-repeat' );
+                    $master = ( $node.hasClass( 'clone' ) ) ? $siblings.not( '.clone' ).eq( 0 ) : $node;
                     $clone = $master.clone( true, true );
 
                     // Add clone class and remove any child clones.. (cloned repeats within repeats..)
@@ -1738,14 +1745,6 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                         that.formO.setValid( $( this ) );
                     } );
 
-                    $clone.insertAfter( $node )
-                        .parent( '.or-group' ).numberRepeats();
-
-                    $clone.clearInputs( '' );
-
-                    // Re-initiate widgets in clone after default values have been set
-                    widgets.destroy( $clone );
-                    widgets.init( $clone );
                     // Note: in http://formhub.org/formhub_u/forms/hh_polio_survey_cloned/form.xml a parent group of a repeat
                     // has the same ref attribute as the nodeset attribute of the repeat. This would cause a problem determining 
                     // the proper index if .or-repeat was not included in the selector
@@ -1766,7 +1765,16 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                         $clone.find( 'input[type="radio"][data-name="' + radioNames[ i ] + '"]' ).attr( 'name', timestamp );
                     }
 
-                    this.toggleButtons( $master.parent() );
+                    // remove the widgets before adding clone
+                    widgets.destroy( $clone );
+                    // clear the inputs before adding clone
+                    $clone.clearInputs( '' );
+                    // insert the clone after values and widgets have been reset
+                    $clone.insertAfter( $node );
+                    // number the repeats
+                    this.numberRepeats( $siblings.add( $node ).add( $clone ) );
+                    // enable or disable + and - buttons
+                    this.toggleButtons( $siblings.add( $node ).add( $clone ) );
 
                     // Create a new data point in <instance> by cloning the template node
                     // and clone data node if it doesn't already exist
@@ -1778,23 +1786,25 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                     // this will trigger setting default values and other stuff
                     $clone.trigger( 'addrepeat', index + 1 );
 
+                    // Re-initiate widgets in clone after default values have been set
+                    widgets.init( $clone );
 
 
                     //p.report();
                     return true;
                 },
                 remove: function( $repeat ) {
-                    var delay = 600, // dataNode,
+                    var delay = 600,
                         that = this,
                         $prev = $repeat.prev( '.or-repeat' ),
                         repeatPath = $repeat.attr( 'name' ),
                         repeatIndex = $form.find( '.or-repeat[name="' + repeatPath + '"]' ).index( $repeat ),
-                        $parentGroup = $repeat.parent( '.or-group' );
+                        $siblings = $repeat.siblings( '.or-repeat' );
 
                     $repeat.hide( delay, function() {
                         $repeat.remove();
-                        $parentGroup.numberRepeats();
-                        that.toggleButtons( $parentGroup );
+                        that.numberRepeats( $siblings );
+                        that.toggleButtons( $siblings );
                         // trigger the removerepeat on the previous repeat (always present)
                         // so that removerepeat handlers know where the repeat was removed
                         $prev.trigger( 'removerepeat' );
@@ -1802,15 +1812,35 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                         model.node( repeatPath, repeatIndex ).remove();
                     } );
                 },
-                toggleButtons: function( $node ) {
-                    $node = ( typeof $node == 'undefined' || $node.length === 0 || !$node ) ? $node = $form : $node;
+                toggleButtons: function( $repeats ) {
+                    $repeats = ( !$repeats || $repeats.length === 0 ) ? $form : $repeats;
 
                     //first switch everything off and remove hover state
-                    $node.find( 'button.repeat, button.remove' ).prop( 'disabled', true ); //button('disable').removeClass('ui-state-hover');
+                    $repeats.find( 'button.repeat, button.remove' ).prop( 'disabled', true );
 
                     //then enable the appropriate ones
-                    $node.find( '.or-repeat:last-child > .repeat-buttons button.repeat' ).prop( 'disabled', false ); //.button('enable');
-                    $node.find( 'button.remove' ).not( ':eq(0)' ).prop( 'disabled', false );
+                    $repeats.last().find( 'button.repeat' ).prop( 'disabled', false );
+                    $repeats.find( 'button.remove' ).not( ':first' ).prop( 'disabled', false );
+                },
+                numberRepeats: function( $repeats ) {
+                    $repeats.each( function() {
+                        var repSiblings, qtyRepeats, i;
+                        // if it is the first-of-type (not that ':first-of-type' does not have cross-browser support)
+                        if ( $( this ).prev( '.or-repeat' ).length === 0 ) {
+                            repSiblings = $( this ).siblings( '.or-repeat' );
+                            qtyRepeats = repSiblings.length + 1;
+                            if ( qtyRepeats > 1 ) {
+                                $( this ).find( '.repeat-number' ).text( '1' );
+                                i = 2;
+                                repSiblings.each( function() {
+                                    $( this ).find( '.repeat-number' ).text( i );
+                                    i++;
+                                } );
+                            } else {
+                                $( this ).find( '.repeat-number' ).empty();
+                            }
+                        }
+                    } );
                 }
             };
 
@@ -1945,7 +1975,7 @@ define( [ 'enketo-js/FormModel', 'enketo-js/widgets', 'jquery', 'enketo-js/plugi
                 $form.on( 'addrepeat', function( event, index ) {
                     var $clone = $( event.target );
                     // Set defaults of added repeats in FormView, setAllVals does not trigger change event
-                    that.setAllVals( $clone );
+                    that.setAllVals( $clone, index );
                     // for a NEW repeat ALL calculations inside that repeat have to be initialized
                     that.calcUpdate( {
                         repeatPath: $clone.attr( 'name' ),

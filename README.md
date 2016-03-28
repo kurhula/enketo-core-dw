@@ -1,4 +1,4 @@
-enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.svg)](https://travis-ci.org/enketo/enketo-core) [![devDependency Status](https://david-dm.org/enketo/enketo-core/dev-status.svg)](https://david-dm.org/enketo/enketo-core#info=devDependencies)
+enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.svg?branch=master)](https://travis-ci.org/enketo/enketo-core) [![devDependency Status](https://david-dm.org/enketo/enketo-core/dev-status.svg)](https://david-dm.org/enketo/enketo-core#info=devDependencies)
 ================
 
 The engine that powers [Enketo Smart Paper](https://enketo.org) and various third party tools.
@@ -7,27 +7,12 @@ This repo is meant to use as a building block for your own enketo-powered applic
 
 Follow the [Enketo blog](http://blog.enketo.org) or [Enketo on twitter](https://twitter.com/enketo) to stay up to date.
 
+###Usage as a library
 
-###How to run it
-
-1. install [node](http://nodejs.org/) (and [npm](https://npmjs.org/)), [grunt-cli](http://gruntjs.com/getting-started) and [ruby](https://www.ruby-lang.org/en/downloads/)
-2. clone the repo
-3. get the submodules with `git submodule update --init --recursive` (run this again after pulling updates!)
-3. install most dependencies with `npm install` and `bower install`
-4. install sass with `gem install sass` or `gem update sass` if already installed
-4. build and test with `grunt`
-5. start built-in server with `grunt server` 
-8. browse to [http://localhost:8080/forms/index.html](http://localhost:8080/forms/index.html)
-
-
-###Recommended usage as a library
-
-1. Develop a way to perform an XSL Transformation on OpenRosa-flavoured XForms inside your app. The transformation will output an XML instance and a HTML form. See [enketo-xslt-transformer-php](https://github.com/MartijnR/enketo-xslt-transformer-php) for an example. For development purposes you may also use the free (and slow, not robust at all) API provided by Enketo LLC at [http://xslt-dev.enketo.org/](http://xslt-dev.enketo.org/) (add `?xform=http://myforms.com/myform.xml` to use API).
-2. Fork enketo-core so you can extend it and easily send pull requests back to this repository.
-3. Add your enketo-core fork as a git submodule to your app (e.g. in /lib). This provides an easy way to pull updates to enketo-core into your application.
-4. Ignore (or copy parts of) [Gruntfile.js](Gruntfile.js), [config.json](config.json) and [app.js](app.js) and create your own app's build system instead
-5. If you make changes to enketo-core, send a pull request to the [https://github.com/MartijnR/enketo-core]! As an added advantage, when your pull request gets accepted it will be much easier to keep your app up-to-date with the latest enketo-core updates without merge conflicts.
-6. Main methods illustrated in code below:
+1. Add as a git submodule (future: bower)
+2. Develop a way to perform an XSL Transformation on OpenRosa-flavoured XForms inside your app. The transformation will output an XML instance and a HTML form. See [enketo-xslt-transformer-php](https://github.com/MartijnR/enketo-xslt-transformer-php) for an example. For development purposes you may also use the free (and slow, not robust at all) API provided by Enketo LLC at [http://xslt-dev.enketo.org/](http://xslt-dev.enketo.org/) (add `?xform=http://myforms.com/myform.xml` to use API).
+3. Ignore (or copy parts of) [Gruntfile.js](Gruntfile.js), [config.json](config.json) and [app.js](app.js) and create your own app's build system instead
+4. Main methods illustrated in code below:
 
 ```javascript 
 
@@ -38,17 +23,25 @@ requirejs(['js/Form'], function (Form){
 	// In this example we assume the HTML was injected at the server and modelStr 
 	// was injected as a global variable inside a <script> tag.
 
-	// string of the jquery selector of the HTML Form DOM element
+	// required string of the jquery selector of the HTML Form DOM element
 	var formSelector = 'form.or:eq(0)';
 
-	// string of the default instance defined in the XForm
-	var modelStr = globalXMLInstance;
+	// required object containing data for the form
+	var data = {};
 
-	// string of an existing instance to be edited
-	var modelToEditStr = null;
+	// required string of the default instance defined in the XForm
+	data.modelStr = globalXMLInstance;
 
-	// instantiate a form, with 2 (or 3) parameters
-	var form = new Form( formSelector, modelStr, modelToEditStr);
+	// optional string of an existing instance to be edited
+	data.instanceStr = null;
+	// optional boolean whether this instance has been unsubmitted so far
+	data.unsubmitted = true;
+
+	// optional array of objects containing {id: 'someInstanceId', xmlStr: '<root>external instance content</root>'}
+	data.external = [];
+
+	// instantiate a form, with 2 parameters
+	var form = new Form( formSelector, data);
 
 	//initialize the form and capture any load errors
 	var loadErrors = form.init();
@@ -73,6 +66,16 @@ requirejs(['js/Form'], function (Form){
     } );
 });
 ```
+
+###How to run to develop on enketo-core
+
+1. install [node](http://nodejs.org/), [grunt-cli](http://gruntjs.com/getting-started), and bower
+2. clone the repo
+3. get the submodules with `git submodule update --init --recursive` (run this again after pulling updates!)
+3. install most dependencies with `npm install` and `bower install`
+4. build and test with `grunt`
+5. start built-in server with `grunt server` 
+8. browse to [http://localhost:8080/forms/index.html](http://localhost:8080/forms/index.html)
 
 ###How to create or extend widgets
 
@@ -131,21 +134,33 @@ We would be happy to discuss whether your contribution should be a part of the c
 I would like to acknowledge and thank the indirect contribution by the creators of the following excellent works that were used in the project:
 
 * [XPathJS by Andrej Pavlovic](https://github.com/andrejpavlovic/xpathjs)
-* [JQuery](http://jquery.com)
-* [Modernizr](http://modernizr.com)
-* [Bootstrap](http://twitter.github.com/bootstrap/)
 * [Bootstrap Datepicker by eternicode](https://github.com/eternicode/bootstrap-datepicker)
 * [Bootstrap Timepicker by jdewit](http://jdewit.github.io/bootstrap-timepicker/)
 
+###Sponsors
+
+The development of this app and [enketo-core](https://github.com/enketo/enketo-core) was sponsored by:
+
+* [Sustainable Engineering Lab at Columbia University](http://modi.mech.columbia.edu/)
+* [WHO - HRP project](http://www.who.int/reproductivehealth/topics/mhealth/en/index.html)
+* [Santa Fe Insitute & Slum/Shack Dwellers International](http://www.santafe.edu/)
+* [Enketo LLC](http://www.linkedin.com/company/enketo-llc)
+* [iMMAP](http://immap.org)
+* [KoBo Toolbox (Harvard Humanitarian Initiative)](https://kobotoolbox.org)
+* [Enketo LLC](https://enketo.org)
+
 ###Related Projects
 
-* [enketo-express](https://github.com/enketo/enketo-express) - A modern node.js version of Enketo Smart Paper
-* [enketo-xpath-js](https://github.com/enketo/enketo-xpathjs) - used inside this repo
-* [enketo-xslt](https://github.com/MartijnR/enketo-xslt) - the XSLT sheets used to transform OpenRosa XForms into Enketo HTML forms
-* [enketo-xslt-transformer-php](https://github.com/MartijnR/enketo-xslt-transformer-php) - a minimalistic example in PHP of an XSLT transformer
+* [Enketo Express](https://github.com/enketo/enketo-express) - A modern node.js version of Enketo Smart Paper
+* [Enketo Legacy](https://github.com/enketo/enketo-legacy) - The old not-so-modern version of Enketo Smart Paper
+* [Enketo XpathJS](https://github.com/enketo/enketo-xpathjs) - used inside this repo
+* [Enketo XSLT](https://github.com/enketo/enketo-xslt) - the XSLT sheets used to transform OpenRosa XForms into Enketo HTML forms
+* [Enketo XSLT Transformer PHP](https://github.com/enketo/enketo-xslt-transformer-php) - a minimalistic example in PHP of an XSLT transformer
 * [enketo-xslt-transformer-node] - To follow hopefully
-* [enketo-dristhi](https://github.com/enketo/enketo-dristhi) - used inside an Android app around enketo
-* [enketo-json](https://github.com/MartijnR/enketo-json) - XML-JSON instance convertor used inside e.g. Dristhi
-* [file-manager](https://github.com/enketo/file-manager) - library to deal with the experimental Filesystem API
-* [openrosa-forms](https://github.com/MartijnR/openrosa-forms) - bunch of test forms, for development
-* [enketo-api-docs](https://github.com/MartijnR/enketo-api-docs) - recommended API to support with your app
+* [Enketo Dristhi](https://github.com/enketo/enketo-dristhi) - used inside an Android app around enketo
+* [Enketo JSON](https://github.com/enketo/enketo-json) - XML-JSON instance convertor used inside e.g. Dristhi
+
+### Change log
+
+See [CHANGELOG](./CHANGELOG.md)
+

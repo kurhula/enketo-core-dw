@@ -91,6 +91,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         if ( existingFileName ) {
             this._showFileName( existingFileName, this.mediaType );
             this.showDownloadLinkAndPreview(existingFileName);
+
         }
 
         if ( !fileManager || !fileManager.isSupported() ) {
@@ -137,9 +138,10 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
             return true;
         };
 
-        $( this.element ).on( 'change.passthrough.' + this.namespace, function( event ) {
-            var file,
-                $input = $( this );
+        $( this.element ).on( 'change.propagate.' + this.namespace, function( event ) {
+            var file, fileName,
+                $input = $( this ),
+                loadedFileName = $input.attr( 'data-loaded-file-name' );
 
             // get the file
             file = this.files[ 0 ];
@@ -162,24 +164,36 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
                 return false;
             }
             // trigger eventhandler to update instance value
-            if ( event.namespace === 'passthrough' ) {
+            if ( event.namespace === 'propagate' ) {
                 $input.trigger( 'change.file' );
                 return false;
+            } else {
+                event.stopImmediatePropagation();
             }
 
-            $(this).removeAttr( 'data-loaded-file-name' );
+            // get the file
+            file = this.files[ 0 ];
+            fileName = that._getFileName( file );
 
             // process the file
             fileManager.getFileUrl( file )
                 .then( function( url ) {
+                    // update UI
                     that._showPreview( url, that.mediaType );
                     that._showRemoveButton(that.$preview, $input);
                     that._showFeedback( '' );
-                    that._showFileName( file );
-                    $input.trigger( 'change.passthrough' );
+                    that._showFileName( fileName );
+                    if ( loadedFileName && loadedFileName !== fileName ) {
+                        $input.removeAttr( 'data-loaded-file-name' );
+                    }
+                    // update record
+                    $input.trigger( 'change.propagate' );
                 } )
                 .catch( function( error ) {
-                    $input.val( '' );
+                    // update record to clear any existing valid value
+                    $input.val( '' ).trigger( 'change.propagate' );
+                    // update UI
+                    that._showFileName( '' );
                     that._showPreview( null );
                     that._showFileName( null );
                     that._showFeedback( error.message, 'error' );
@@ -188,15 +202,12 @@ define( [ 'jquery', 'enketo-js/Widget', 'file-manager' ], function( $, Widget, f
         } );
     };
 
-    Filepicker.prototype._showFileName = function( file ) {
-        if (file){
-            var fileName = ( typeof file === 'object' && file.name ) ? file.name : file;
-            this.$fakeInput.text( fileName );
-        }
-        else {
+    Filepicker.prototype._getFileName = function( file ) {
+        return ( typeof file === 'object' && file.name ) ? file.name : '';
+    };
 
-            this.$fakeInput.text( '' );
-        }
+    Filepicker.prototype._showFileName = function( fileName ) {
+        this.$fakeInput.text( fileName );
     };
 
     Filepicker.prototype._showFeedback = function( message, status ) {

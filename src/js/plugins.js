@@ -1,36 +1,6 @@
 define( [ 'jquery' ], function( $ ) {
 
     /**
-     * Update number of repeated elements (with class or-repeat)
-     *
-     * @return {jQuery} [description]
-     */
-    $.fn.numberRepeats = function() {
-
-        return this.each( function() {
-
-            $( this ).find( '.or-repeat' ).each( function() {
-                var repSiblings, qtyRepeats, i;
-                // if it is the first-of-type (not that ':first-of-type' does not have cross-browser support)
-                if ( $( this ).prev( '.or-repeat' ).length === 0 ) {
-                    repSiblings = $( this ).siblings( '.or-repeat' );
-                    qtyRepeats = repSiblings.length + 1;
-                    if ( qtyRepeats > 1 ) {
-                        $( this ).find( '.repeat-number' ).text( '1' );
-                        i = 2;
-                        repSiblings.each( function() {
-                            $( this ).find( '.repeat-number' ).text( i );
-                            i++;
-                        } );
-                    } else {
-                        $( this ).find( '.repeat-number' ).empty();
-                    }
-                }
-            } );
-        } );
-    };
-
-    /**
      * Clears form input fields and triggers events when doing this. If formelement is cloned but not yet added to DOM
      * (and not synchronized with data object), the desired event is probably 'edit' (default). If it is already added
      * to the DOM (and synchronized with data object) a regular change event should be fired
@@ -122,7 +92,7 @@ define( [ 'jquery' ], function( $ ) {
             html = html.replace( /\*([^\s][^\*]*[^\s])\*/gm, '<em>$1</em>' );
             //only replaces if url is valid (worthwhile feature?)
             //html = html.replace( /\[(.*)\]\(((https?:\/\/)(([\da-z\.\-]+)\.([a-z\.]{2,6})|(([0-9]{1,3}\.){3}[0-9]{1,3}))([\/\w \.\-]*)*\/?[\/\w \.\-\=\&\?]*)\)/gm, '<a href="$2">$1</a>' );
-            html = html.replace( /\[(.*)\]\(([^\)]+)\)/gm, '<a href="$2" target="_blank">$1</a>' );
+            html = html.replace( /\[([^\]]*)\]\(([^\)]+)\)/gm, '<a href="$2" target="_blank">$1</a>' );
             html = html.replace( /\n/gm, '<br />' );
             $childStore.children().each( function( i ) {
                 var regex = new RegExp( '\\$\\$\\$' + i );

@@ -124,7 +124,7 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form', 'file-manager' ],
         formStr = ( new XMLSerializer() ).serializeToString( $data.find( 'form:eq(0)' )[ 0 ] );
         modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
 
-        $( '#validate-form' ).before( formStr );
+        $( '.form-header' ).after( formStr );
         $("form").trigger("initializePostFormLoadAction");
         initializeForm();
         $("form").trigger("postFormLoadAction");
@@ -152,7 +152,7 @@ requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form', 'file-manager' ],
 
         function getURLParameter( name ) {
             return decodeURI(
-                ( RegExp( name + '=' + '(.+?)(&|$)' ).exec( location.search ) || [ , null ] )[ 1 ]
+                ( RegExp( name + '=' + '(.+?)(&|$)' ).exec( location.search ) || [ null, null ] )[ 1 ]
             );
         }
     } );
