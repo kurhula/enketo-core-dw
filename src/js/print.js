@@ -19,7 +19,7 @@
  */
 
 define( [ 'jquery' ], function( $ ) {
-    "use strict";
+    'use strict';
     var dpi, printStyleSheet, $printStyleSheetLink;
 
     // make sure setDpi is not called until DOM is ready
@@ -32,9 +32,9 @@ define( [ 'jquery' ], function( $ ) {
      */
     function setDpi() {
         var dpiO = {},
-            e = document.body.appendChild( document.createElement( "DIV" ) );
-        e.style.width = "1in";
-        e.style.padding = "0";
+            e = document.body.appendChild( document.createElement( 'DIV' ) );
+        e.style.width = '1in';
+        e.style.padding = '0';
         dpiO.v = e.offsetWidth;
         e.parentNode.removeChild( e );
         dpi = dpiO.v;
@@ -45,13 +45,14 @@ define( [ 'jquery' ], function( $ ) {
      * @return {Element} [description]
      */
     function getPrintStyleSheet() {
-        var sheet, media;
+        var sheet;
         // document.styleSheets is an Object not an Array!
         for ( var i in document.styleSheets ) {
-            sheet = document.styleSheets[ i ];
-            console.log( 'checking prop', i, sheet );
-            if ( sheet.media.mediaText === 'print' ) {
-                return sheet;
+            if ( document.styleSheets.hasOwnProperty( i ) ) {
+                sheet = document.styleSheets[ i ];
+                if ( sheet.media.mediaText === 'print' ) {
+                    return sheet;
+                }
             }
         }
         return null;
@@ -65,12 +66,12 @@ define( [ 'jquery' ], function( $ ) {
      * Applies the print stylesheet to the current view by changing stylesheets media property to 'all'
      */
     function styleToAll() {
-        //sometimes, setStylesheet fails upon loading
+        // sometimes, setStylesheet fails upon loading
         printStyleSheet = printStyleSheet || getPrintStyleSheet();
         $printStyleSheetLink = $printStyleSheetLink || getPrintStyleSheetLink();
-        //Chrome:
+        // Chrome:
         printStyleSheet.media.mediaText = 'all';
-        //Firefox:
+        // Firefox:
         $printStyleSheetLink.attr( 'media', 'all' );
     }
 
@@ -80,42 +81,39 @@ define( [ 'jquery' ], function( $ ) {
     function styleReset() {
         printStyleSheet.media.mediaText = 'print';
         $printStyleSheetLink.attr( 'media', 'print' );
-        $( '.print-height-adjusted, .print-width-adjusted' )
+        $( '.print-height-adjusted, .print-width-adjusted, .main' )
             .removeAttr( 'style' )
             .removeClass( 'print-height-adjusted print-width-adjusted' );
         $( '.back-to-screen-view' ).off( 'click' ).remove();
     }
 
     function isGrid() {
-        return $( 'form.or' ).hasClass( 'theme-grid' );
+        return /theme-.*grid.*/.test( $( 'form.or' ).attr( 'class' ) );
     }
 
     function fixGrid( paper ) {
-        var $row, $el, left, lowestX, maxWidth, diff,
-            firstRow = true;
+        var $row, $el, top, rowTop, maxWidth, diff;
 
-        console.log( 'paper pixel width', getPaperPixelWidth( paper ) );
         // to ensure cells grow correctly with text-wrapping before fixing heights and widths.
         $( '.main' ).css( 'width', getPaperPixelWidth( paper ) ).addClass( 'print-width-adjusted' );
         // wait for browser repainting after width change
         setTimeout( function() {
             // the -1px adjustment is necessary because the h3 element width is calc(100% + 1px)
             maxWidth = $( '#form-title' ).outerWidth() - 1;
-            console.log( 'maxWidth', maxWidth );
             $( '.question, .note, .trigger' ).not( '.draft' ).each( function() {
                 $el = $( this );
-                left = $el.offset().left;
-                // determine the lowest possible x-coordinate
-                lowestX = ( lowestX || lowestX === 0 ) ? lowestX : left;
-
+                top = $el.offset().top;
+                rowTop = ( rowTop || rowTop === 0 ) ? rowTop : top;
                 $row = $row || $el;
-                if ( left > lowestX ) {
+
+                if ( top === rowTop ) {
                     $row = $row.add( $el );
-                } else if ( left === lowestX && !firstRow ) {
+                } else if ( top > rowTop ) {
                     var height,
                         widths = [],
                         cumulativeWidth = 0,
                         maxHeight = 0;
+
                     $row.each( function() {
                         height = $( this ).outerHeight();
                         maxHeight = ( height > maxHeight ) ? height : maxHeight;
@@ -127,22 +125,24 @@ define( [ 'jquery' ], function( $ ) {
                     widths.forEach( function( width ) {
                         cumulativeWidth += width;
                     } );
+
                     if ( cumulativeWidth < maxWidth ) {
-                        console.log( 'adjusting width' );
 
                         diff = maxWidth - cumulativeWidth;
                         $row.each( function( index ) {
+                            var width = widths[ index ] + ( widths[ index ] / cumulativeWidth ) * diff;
+                            // round down to 2 decimals to avoid 100.001% totals
                             $( this )
-                                .css( 'width', ( ( widths[ index ] + ( widths[ index ] / cumulativeWidth ) * diff ) * 100 / maxWidth ) + '%' )
+                                .css( 'width', ( Math.floor( ( width * 100 / maxWidth ) * 100 ) / 100 ) + '%' )
                                 .addClass( 'print-width-adjusted' );
                         } );
                     }
                     // start a new row
                     $row = $el;
-                } else if ( !firstRow ) {
-                    console.error( 'unexpected x-coordinate: ', left, 'for element:', $el, 'lowest expected', lowestX );
+                    rowTop = $el.offset().top;
+                } else {
+                    console.error( 'unexpected question top position: ', top, 'for element:', $el, 'expected >=', rowTop );
                 }
-                firstRow = false;
             } );
             // Chrome 34 doesn't like the fact that main has an inline fixed width (see issue #99)
             // since we do not need it any more, after we have set the adjusted widths to a %-value, we can remove it. 
@@ -198,7 +198,6 @@ define( [ 'jquery' ], function( $ ) {
                         styleReset();
                     }, 1500 );
                 }
-
             };
 
         // TODO: would be nice if fixGrid can become synchronous again or

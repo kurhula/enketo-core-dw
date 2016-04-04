@@ -1,39 +1,9 @@
-requirejs.config( {
-    baseUrl: "../lib",
-    paths: {
-        "enketo-js": "../src/js",
-        "enketo-widget": "../src/widget",
-        "enketo-config": "../config.json",
-        "text": "text/text",
-        "xpath": "xpath/build/xpathjs_javarosa",
-        "file-manager": "../src/js/file-manager",
-        "jquery": "bower-components/jquery/dist/jquery",
-        "jquery.xpath": "jquery-xpath/jquery.xpath",
-        "jquery.touchswipe": "jquery-touchswipe/jquery.touchSwipe",
-        "leaflet": "leaflet/leaflet",
-        "bootstrap-slider": "bootstrap-slider/js/bootstrap-slider",
-        "q": "bower-components/q/q"
-    },
-    shim: {
-        "xpath": {
-            exports: "XPathJS"
-        },
-        "widget/date/bootstrap3-datepicker/js/bootstrap-datepicker": {
-            deps: [ "jquery" ],
-            exports: "jQuery.fn.datepicker"
-        },
-        "widget/time/bootstrap3-timepicker/js/bootstrap-timepicker": {
-            deps: [ "jquery" ],
-            exports: "jQuery.fn.timepicker"
-        },
-        "Modernizr": {
-            exports: "Modernizr"
-        },
-        "leaflet": {
-            exports: "L"
-        }
-    }
-} );
+/**
+ * This file is just meant to facilitate enketo-core development as a standalone library.
+ *
+ * When using enketo-core as a library inside your app, it is recommended to just **ignore** this file.
+ * Place a replacement for this controller elsewhere in your app.
+ */
 
 define('jquery', [], function() {
     return jQuery;
@@ -106,53 +76,120 @@ function saveXformSubmission(callback) {
         });
     }
 }
-requirejs( [ 'jquery', 'Modernizr', 'enketo-js/Form', 'file-manager' ],
-    function( $, Modernizr, Form, fileManager ) {
-        var loadErrors, form, formStr, modelStr;
 
-        //if querystring touch=true is added, override Modernizr
-        if ( getURLParameter( 'touch' ) === 'true' ) {
-            Modernizr.touch = true;
-            $( 'html' ).addClass( 'touch' );
-        }
+requirejs( [ 'require-config' ], function( rc ) {
+    requirejs( [ 'jquery', 'enketo-js/support', 'enketo-js/Form', 'file-manager', 'papaparse' ],
+        function( $, support, Form, fileManager, Papa ) {
+            var loadErrors, form, formStr, modelStr, externalData, csvContent, $modelXml;
+            // if querystring touch=true is added, override detected touchscreen presence
+            if ( getURLParameter( 'touch' ) === 'true' ) {
+                support.touch = true;
+                $( 'html' ).addClass( 'touch' );
+            }
 
-        var $data;
-        data = xform_xml.replace( /jr\:template=/gi, 'template=' );
-        $data = $( $.parseXML( data ) );
-        $($data.find( 'form:eq(0)' )[0]).find("#form-title").remove();
+            $( '.guidance' ).remove();
+            var $data;
+            data = xform_xml.replace( /jr\:template=/gi, 'template=' );
+            $data = $( $.parseXML( data ) );
+            $($data.find( 'form:eq(0)' )[0]).find("#form-title").remove();
 
-        formStr = ( new XMLSerializer() ).serializeToString( $data.find( 'form:eq(0)' )[ 0 ] );
-        modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
+            formStr = ( new XMLSerializer() ).serializeToString( $data.find( 'form:eq(0)' )[ 0 ] );
+            modelStr = ( new XMLSerializer() ).serializeToString( $data.find( 'model:eq(0)' )[ 0 ] );
+            externalData = [];
 
-        $( '.form-header' ).after( formStr );
-        $("form").trigger("initializePostFormLoadAction");
-        initializeForm();
-        $("form").trigger("postFormLoadAction");
+            $( '#validate-form' ).before( formStr );
+            
+            $modelXml = $($.parseXML( modelStr ));
+            $modelXml.find('model > instance[src]').each(function (index, instance) { 
+                var $instance = $(instance).attr('id');
+                externalData.push( { id: $instance } ); 
+            });
+            
+            $.get( externalItemsetUrl, function( data ) {
+              csvContent = data;
+              externalData = externalData.map(function (instance) {
+                    return {
+                        id: instance.id,
+                        xmlStr: csvToXml(csvContent, instance)
+                    };
+                });
+
+            $("form").trigger("initializePostFormLoadAction");
+            initializeForm();
+            $("form").trigger("postFormLoadAction");
+        
 
         //validate handler for validate button
         $( '#validate-form' ).on( 'click', function() {
             saveXformSubmission();
                 console.log( 'media files:', fileManager.getCurrentFiles() );
         });
+        });
 
-        //initialize the form
+        // csv to xml
+        function csvToXml( csv, instance ) {
+            var xmlStr,
+                result = Papa.parse( csv ),
+                rows = result.data,
+                headers = rows.shift();
 
+            if ( result.errors.length ) {    throw result.errors[ 0 ];}
+                // trim the headers
+                headers = headers.map( function( header ) {
+                return header.trim();
+            } );
+
+            // check if headers are valid XML node names
+            headers.every( _throwInvalidXmlNodeName );
+
+            // create an XML string
+            xmlStr = '<root>' +
+                rows.map( function( row ) {
+                   if (row[0] == instance.id) {
+                    return '<item>' + row.map( function( value, index ) {
+                       if (value != "" && index != 0) {
+                        return '<{n}>{v}</{n}>'.replace( /{n}/g, headers[ index ] ).replace( /{v}/g, value.trim() );
+                       }
+                    } ).join( '' ) + '</item>';
+                   }
+                } ).join( '' ) +
+                '</root>';
+
+            return xmlStr;
+        }
+
+        function _throwInvalidXmlNodeName( name ) {
+            // Note: this is more restrictive than XML spec.
+            // We cannot accept namespaces prefixes because there is no way of knowing the namespace uri in CSV.
+            if ( /^(?!xml)[A-Za-z._][A-Za-z0-9._]*$/.test( name ) ) {
+                return true;
+            } else {
+                throw new Error( 'CSV column heading "' + name + '" cannot be turned into a valid XML element' );
+            }
+        }
+
+        // initialize the form
         function initializeForm() {
-            form = new Form( 'form.or:eq(0)', modelStr, dataStrToEdit );
-            //for debugging
+            form = new Form( 'form.or:eq(0)', {
+                    modelStr: modelStr,
+                    external: externalData,
+                    instanceStr: dataStrToEdit
+            } );
+            // for debugging
             window.form = form;
             //initialize form and check for load errors
             loadErrors = form.init();
             if ( loadErrors.length > 0 ) {
                 alert( 'loadErrors: ' + loadErrors.join( ', ' ) );
             }
+
         }
 
-        //get query string parameter
-
-        function getURLParameter( name ) {
-            return decodeURI(
-                ( RegExp( name + '=' + '(.+?)(&|$)' ).exec( location.search ) || [ null, null ] )[ 1 ]
-            );
-        }
-    } );
+            // get query string parameter
+            function getURLParameter( name ) {
+                return decodeURI(
+                    ( new RegExp( name + '=' + '(.+?)(&|$)' ).exec( location.search ) || [ null, null ] )[ 1 ]
+                );
+            }
+        } );
+} );

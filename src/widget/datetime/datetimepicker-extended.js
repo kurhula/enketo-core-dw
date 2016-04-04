@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
+define( [ 'enketo-js/Widget', 'enketo-js/support', 'jquery', 'enketo-js/extend',
         'enketo-widget/date/bootstrap3-datepicker/js/bootstrap-datepicker',
         'enketo-widget/time/bootstrap3-timepicker/js/bootstrap-timepicker'
     ],
-    function( Widget, Modernizr, $ ) {
-        "use strict";
+
+    function( Widget, support, $ ) {
+        'use strict';
 
         var pluginName = 'datetimepickerExtended';
 
@@ -38,7 +39,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
          * @param {*=}                            event     event
          */
 
-        function DatetimepickerExtended( element, options, event ) {
+        function DatetimepickerExtended( element, options ) {
             this.namespace = pluginName;
             //call the Super constructor
             Widget.call( this, element, options );
@@ -101,7 +102,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
             } );
 
             //reset button
-            $fakeTimeI.next( '.btn-reset' ).on( 'click', function( event ) {
+            $fakeTimeI.next( '.btn-reset' ).on( 'click', function() {
                 $fakeDateI.val( '' ).trigger( 'change' ).datepicker( 'update' );
                 $fakeTimeI.val( '' ).trigger( 'change' );
             } );
@@ -123,8 +124,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
          * @return {jQuery}        the jQuery-wrapped fake date input element
          */
         DatetimepickerExtended.prototype._createFakeDateInput = function( dateVal ) {
-            var $datetimeI = $( this.element ),
-                $fakeDate = $(
+            var $fakeDate = $(
                     '<div class="date">' +
                     '<input class="ignore input-small" type="text" readonly="readonly" value="' + dateVal + '" placeholder="yyyy-mm-dd"/>' +
                     '</div>' ),
@@ -139,8 +139,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
          * @return {jQuery}        the jQuery-wrapped fake date input element
          */
         DatetimepickerExtended.prototype._createFakeTimeInput = function( timeVal ) {
-            var $datetimeI = $( this.element ),
-                $fakeTime = $(
+            var $fakeTime = $(
                     '<div class="bootstrap-timepicker">' +
                     '<input class="ignore timepicker-default input-small" readonly="readonly" type="text" value="' +
                     timeVal + '" placeholder="hh:mm"/>' +
@@ -156,7 +155,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
          *
          * @param { jQuery } $fakeDateI Fake date input element
          */
-        DatetimepickerExtended.prototype._setManualHandler = function( $fakeDateI ) {};
+        DatetimepickerExtended.prototype._setManualHandler = function() {};
 
         /**
          * Handler for focus and blur events.
@@ -190,15 +189,16 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-js/extend',
                 browser: "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; GT-P3113 Build/JRO03C) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
                 webview: "Mozilla/5.0 (Linux; U; Android 4.1.2; en-us; GT-P3100 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30" 
                 */
-                if ( !data && typeof options === 'object' && ( !options.touch || !Modernizr.inputtypes.datetime || badSamsung.test( navigator.userAgent ) ) ) {
+                if ( !data && typeof options === 'object' && ( !options.touch || !support.inputtypes.datetime || badSamsung.test( navigator.userAgent ) ) ) {
                     $this.data( pluginName, ( data = new DatetimepickerExtended( this, options, event ) ) );
                 }
                 //only call method if widget was instantiated before
-                else if ( data && typeof options == 'string' ) {
+                else if ( data && typeof options === 'string' ) {
                     //pass the element as a parameter as this is used in fix()
                     data[ options ]( this );
                 }
             } );
         };
 
+        return pluginName;
     } );

@@ -15,7 +15,7 @@
  */
 
 define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
-    "use strict";
+    'use strict';
 
     var pluginName = 'desktopSelectpicker';
 
@@ -54,11 +54,18 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
         var $template = this._getTemplate(),
             $select = $( this.element );
         $select.css( 'display', 'none' );
-        $template = this._createLi( $template );
-        this.$picker = $template.insertAfter( $select );
-        this.$picker.find( '> a' ).addClass( this.selectClass );
-        this._clickListener();
-        this._focusListener();
+
+        var isAutoComplete = $select.hasClass('autocomplete');
+
+        if (isAutoComplete) {
+            $select.combobox();
+        } else {
+            $template = this._createLi( $template );
+            this.$picker = $template.insertAfter( $select );
+            this.$picker.find( '> a' ).addClass( this.selectClass );
+            this._clickListener();
+            this._focusListener();
+        }
     };
 
     DesktopSelectpicker.prototype._getTemplate = function() {
@@ -79,7 +86,7 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
 
         var li = [];
         var liHtml = '';
-        var inputAttr = ( this.multiple ) ? "type='checkbox'" : "type='radio' name='" + Math.random() * 100000 + "'";
+        var inputAttr = ( this.multiple ) ? 'type="checkbox"' : 'type="radio" name="' + Math.random() * 100000 + '"';
         var _this = this;
         var checkedInputAttr,
             checkedLiAttr;
@@ -96,8 +103,8 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
             template = template.replace( '__SELECTED_OPTIONS', this._createSelectedStr() );
             for ( var i = 0; i < li.length; i++ ) {
                 if ( li[ i ].value ) {
-                    checkedInputAttr = ( li[ i ].selected ) ? " checked='checked'" : '';
-                    checkedLiAttr = ( li[ i ].selected && !_this.multiple ) ? "class='active'" : '';
+                    checkedInputAttr = ( li[ i ].selected ) ? ' checked="checked"' : '';
+                    checkedLiAttr = ( li[ i ].selected && !_this.multiple ) ? 'class="active"' : '';
                     /**
                      * e.g.:
                      * <li checked="checked">
@@ -109,13 +116,13 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
                      *    </li>
                      */
                     liHtml +=
-                        "<li " + checkedLiAttr + ">" +
-                        "<a class='option-wrapper' tabindex='-1' href='#'>" +
-                        "<label>" +
-                        "<input class='ignore' " + inputAttr + checkedInputAttr + "value='" + li[ i ].value + "' />" +
-                        "<span class='option-label'>" + li[ i ].label + "</span></label>" +
-                        "</a>" +
-                        "</li>";
+                        '<li ' + checkedLiAttr + '>' +
+                        '<a class="option-wrapper" tabindex="-1" href="#">' +
+                        '<label>' +
+                        '<input class="ignore" ' + inputAttr + checkedInputAttr + 'value="' + li[ i ].value + '" />' +
+                        '<span class="option-label">' + li[ i ].label + '</span></label>' +
+                        '</a>' +
+                        '</li>';
                 }
             }
         }
@@ -229,9 +236,9 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
                 data = $this.data( pluginName );
 
             //only instantiate if options is an object AND if options.touch is falsy
-            if ( !data && typeof options == 'object' && !options.touch ) {
+            if ( !data && typeof options === 'object' && !options.touch ) {
                 $this.data( pluginName, ( data = new DesktopSelectpicker( this, options, event ) ) );
-            } else if ( data && typeof options == 'string' ) {
+            } else if ( data && typeof options === 'string' ) {
                 data[ options ]( this );
             }
         } );
@@ -252,7 +259,9 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
         Dropdown.prototype.toggle = function( e ) {
             var $this = $( this );
 
-            if ( $this.is( '.disabled, :disabled' ) ) return;
+            if ( $this.is( '.disabled, :disabled' ) ) {
+                return;
+            }
 
             var $parent = getParent( $this );
             var isActive = $parent.hasClass( 'open' );
@@ -270,7 +279,9 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
                 };
                 $parent.trigger( e = $.Event( 'show.bs.dropdown', relatedTarget ) );
 
-                if ( e.isDefaultPrevented() ) return;
+                if ( e.isDefaultPrevented() ) {
+                    return;
+                }
 
                 $parent
                     .toggleClass( 'open' )
@@ -283,33 +294,47 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
         };
 
         Dropdown.prototype.keydown = function( e ) {
-            if ( !/(38|40|27)/.test( e.keyCode ) ) return;
+            if ( !/(38|40|27)/.test( e.keyCode ) ) {
+                return;
+            }
 
             var $this = $( this );
 
             e.preventDefault();
             e.stopPropagation();
 
-            if ( $this.is( '.disabled, :disabled' ) ) return;
+            if ( $this.is( '.disabled, :disabled' ) ) {
+                return;
+            }
 
             var $parent = getParent( $this );
             var isActive = $parent.hasClass( 'open' );
 
-            if ( !isActive || ( isActive && e.keyCode == 27 ) ) {
-                if ( e.which == 27 ) $parent.find( toggle ).focus();
+            if ( !isActive || ( isActive && e.keyCode === 27 ) ) {
+                if ( e.which === 27 ) {
+                    $parent.find( toggle ).focus();
+                }
                 return $this.click();
             }
 
             var desc = ' li:not(.divider):visible a';
             var $items = $parent.find( '[role=menu]' + desc + ', [role=listbox]' + desc );
 
-            if ( !$items.length ) return;
+            if ( !$items.length ) {
+                return;
+            }
 
             var index = $items.index( $items.filter( ':focus' ) );
 
-            if ( e.keyCode == 38 && index > 0 ) index--; // up
-            if ( e.keyCode == 40 && index < $items.length - 1 ) index++; // down
-            if ( !~index ) index = 0;
+            if ( e.keyCode === 38 && index > 0 ) {
+                index--; // up
+            }
+            if ( e.keyCode === 40 && index < $items.length - 1 ) {
+                index++; // down
+            }
+            if ( !~index ) {
+                index = 0;
+            }
 
             $items.eq( index ).focus();
         };
@@ -321,9 +346,13 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
                 var relatedTarget = {
                     relatedTarget: this
                 };
-                if ( !$parent.hasClass( 'open' ) ) return;
+                if ( !$parent.hasClass( 'open' ) ) {
+                    return;
+                }
                 $parent.trigger( e = $.Event( 'hide.bs.dropdown', relatedTarget ) );
-                if ( e.isDefaultPrevented() ) return;
+                if ( e.isDefaultPrevented() ) {
+                    return;
+                }
                 $parent.removeClass( 'open' ).trigger( 'hidden.bs.dropdown', relatedTarget );
             } );
         }
@@ -352,8 +381,12 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
                 var $this = $( this );
                 var data = $this.data( 'bs.dropdown' );
 
-                if ( !data ) $this.data( 'bs.dropdown', ( data = new Dropdown( this ) ) );
-                if ( typeof option == 'string' ) data[ option ].call( $this );
+                if ( !data ) {
+                    $this.data( 'bs.dropdown', ( data = new Dropdown( this ) ) );
+                }
+                if ( typeof option === 'string' ) {
+                    data[ option ].call( $this );
+                }
             } );
         };
 
@@ -382,4 +415,5 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
 
     }( jQuery );
 
+    return pluginName;
 } );

@@ -1,10 +1,9 @@
-define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Modernizr, $ ) {
-    "use strict";
+define( [ 'text!enketo-config', 'enketo-js/support', 'q', 'jquery' ], function( configStr, support, Q, $ ) {
+    'use strict';
 
-    var $form,
-        widgetConfig = [],
-        loaded = false,
-        globalConfig = JSON.parse( configStr );
+    var $form, init, enable, disable, destroy,
+        _getWidgetConfigs, _getElements, _instantiate, _load, _setLangChangeHandler, _setOptionChangeHandler,
+        widgets = [];
 
     /**
      * Initializes widgets
@@ -12,61 +11,15 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      * @param  {jQuery} $group The element inside which the widgets have to be initialized.
      */
 
-    function init( $group ) {
+    init = function( $group ) {
         $form = $( 'form.or' );
         $group = $group || $form;
 
-        if ( !loaded ) {
-            load( function() {
-                create( $group );
+        _getWidgetConfigs( JSON.parse( configStr ) )
+            .then( function( widgets ) {
+                _instantiate( $group );
             } );
-        } else {
-            create( $group );
-        }
-    }
-
-    /**
-     * load the widget modules (asynchronously)
-     *
-     * @param  {Function} callback
-     */
-
-    function load( callback ) {
-        require( globalConfig.widgets, function() {
-            var id,
-                widgetConfigFiles = [];
-
-            //console.log( 'widget modules loaded', arguments.length );
-
-            //add widget configuration to config object
-            for ( var i = 0; i < globalConfig.widgets.length; i++ ) {
-                id = 'text!' + globalConfig.widgets[ i ].substr( 0, globalConfig.widgets[ i ].lastIndexOf( '/' ) + 1 ) + 'config.json';
-                widgetConfigFiles.push( id );
-            }
-
-            //load widget config files
-            require( widgetConfigFiles, function() {
-                for ( var i = 0; i < arguments.length; i++ ) {
-                    widgetConfig.push( JSON.parse( arguments[ i ] ) );
-                }
-                //console.log( 'widget config files loaded', widgetConfig.length );
-                loaded = true;
-                callback();
-            } );
-        } );
-    }
-
-    /**
-     * Returns the elements on which to apply the widget
-     *
-     * @param  {jQuery} $group   a jQuery-wrapped element
-     * @param  {string} selector if the selector is null, the form element will be returned
-     * @return {jQuery}          a jQuery collection
-     */
-
-    function getElements( $group, selector ) {
-        return ( selector ) ? $group.find( selector ) : $form;
-    }
+    };
 
     /**
      * Enables widgets if they weren't enabled already when the branch was enabled by the controller.
@@ -78,20 +31,17 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      *
      * @param  {jQuery} $group [description]
      */
-
-    function enable( $group ) {
+    enable = function( $group ) {
         var widget, $els;
 
-        //console.debug( 'enabling widgets in ', $group );
-
-        for ( var i = 0; i < widgetConfig.length; i++ ) {
-            widget = widgetConfig[ i ];
+        for ( var i = 0; i < widgets.length; i++ ) {
+            widget = widgets[ i ];
             if ( widget.name ) {
-                $els = getElements( $group, widget.selector );
+                $els = _getElements( $group, widget.selector );
                 $els[ widget.name ]( 'enable' );
             }
         }
-    }
+    };
 
     /**
      * Disables  widgets, if they aren't disabled already when the branch was disabled by the controller.
@@ -100,22 +50,18 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      *
      * @param  { jQuery } $group The element inside which all widgets need to be disabled.
      */
-
-    function disable( $group ) {
+    disable = function( $group ) {
         var widget, $els;
 
-        //console.debug( 'disabling widgets in ', $group );
+        for ( var i = 0; i < widgets.length; i++ ) {
 
-        for ( var i = 0; i < widgetConfig.length; i++ ) {
-
-            widget = widgetConfig[ i ];
+            widget = widgets[ i ];
             if ( widget.name ) {
-                $els = getElements( $group, widget.selector );
+                $els = _getElements( $group, widget.selector );
                 $els[ widget.name ]( 'disable' );
             }
-
         }
-    }
+    };
 
     /**
      * Fixes deeply cloned widgets, if necessary. This function is only called with the repeat clone as a parameter.
@@ -124,49 +70,115 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      *
      * @param  {jQuery} $group The element inside which all widgets need to be fixed.
      */
-
-    function destroy( $group ) {
+    destroy = function( $group ) {
         var widget, $els;
 
-        for ( var i = 0; i < widgetConfig.length; i++ ) {
-            widget = widgetConfig[ i ];
+        for ( var i = 0; i < widgets.length; i++ ) {
+
+            widget = widgets[ i ];
             if ( widget.name ) {
-                $els = getElements( $group, widget.selector );
+                $els = _getElements( $group, widget.selector );
                 $els[ widget.name ]( 'destroy' );
             }
         }
-    }
+    };
 
     /**
-     * Creates widgets upon initialization of the form or on a cloned element after having called 'destroy' first
+     * Loads the widget configuration files (asynchronously)
+     *
+     * @param { {widgets:<string> }} config client configuration object
+     * @param  {Function} callback
+     */
+    _getWidgetConfigs = function( config ) {
+        var id, widget,
+            deferred = Q.defer(),
+            widgetConfigFiles = [];
+
+        //add widget configuration to config object
+        for ( var i = 0; i < config.widgets.length; i++ ) {
+            id = 'text!' + config.widgets[ i ].substr( 0, config.widgets[ i ].lastIndexOf( '/' ) + 1 ) + 'config.json';
+            widgetConfigFiles.push( id );
+        }
+
+        //load widget config files
+        require( widgetConfigFiles, function() {
+
+            for ( var i = 0; i < arguments.length; i++ ) {
+                widget = JSON.parse( arguments[ i ] );
+                widget.path = config.widgets[ i ];
+                widgets.push( widget );
+            }
+
+            deferred.resolve( widgets );
+        } );
+
+        return deferred.promise;
+    };
+
+    /**
+     * Returns the elements on which to apply the widget
+     *
+     * @param  {jQuery} $group   a jQuery-wrapped element
+     * @param  {string} selector if the selector is null, the form element will be returned
+     * @return {jQuery}          a jQuery collection
+     */
+    _getElements = function( $group, selector ) {
+        return ( selector ) ? ( selector === 'form' ? $form : $group.find( selector ) ) : $();
+    };
+
+    /**
+     * Instantiate widgets on a group (whole form or newly cloned repeat)
      *
      * @param  {jQuery} $group The elements inside which widgets need to be created.
      */
+    _instantiate = function( $group ) {
 
-    function create( $group ) {
-        var widget, $els;
-
-        //console.log( 'widgets', widgetConfig );
-        for ( var i = 0; i < widgetConfig.length; i++ ) {
-            widget = widgetConfig[ i ];
+        widgets.forEach( function( widget ) {
+            var $elements;
             widget.options = widget.options || {};
-            widget.options.touch = Modernizr.touch;
+            widget.options.touch = support.touch;
 
-            // if the widget is a css-only widget
-            if ( !widget.name ) {
-                //console.log( 'CSS-only widget', widgetConfig[ i ] );
-            } else if ( !widget.selector && widget.selector !== null ) {
-                console.error( 'widget configuration has no acceptable selector property', widget );
-            } else {
-                $els = getElements( $group, widget.selector );
-
-                $els[ widget.name ]( widget.options );
-
-                setLangChangeHandler( widget, $els );
-                setOptionChangeHandler( widget, $els );
+            if ( !widget.selector && widget.selector !== null ) {
+                return console.error( 'widget configuration has no acceptable selector property', widget );
             }
-        }
-    }
+
+            $elements = _getElements( $group, widget.selector );
+
+            if ( !$elements.length ) {
+                return;
+            }
+
+            if ( !widget.load ) {
+                widget.load = _load( widget );
+            }
+
+            widget.load
+                .then( function( widget ) {
+                    // if the widget is not a css-only widget
+                    if ( widget.name ) {
+                        $elements[ widget.name ]( widget.options );
+                        _setLangChangeHandler( widget, $elements );
+                        _setOptionChangeHandler( widget, $elements );
+                    }
+                } );
+        } );
+    };
+
+    /**
+     * Loads a widget module.
+     *
+     * @param  {[type]} widget [description]
+     * @return {[type]}        [description]
+     */
+    _load = function( widget ) {
+        var deferred = Q.defer();
+        require( [ widget.path ], function( widgetName ) {
+            widget.name = widgetName;
+            deferred.resolve( widget );
+        } );
+
+        return deferred.promise;
+    };
 
     /**
      * Calls widget('update') when the language changes. This function is called upon initialization,
@@ -176,16 +188,14 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      * @param {{name: string}} widget The widget configuration object
      * @param {jQuery}         $els   The jQuery collection of elements that the widget has been instantiated on.
      */
-
-    function setLangChangeHandler( widget, $els ) {
-        //call update for all widgets when language changes 
+    _setLangChangeHandler = function( widget, $els ) {
+        // call update for all widgets when language changes 
         if ( $els.length > 0 ) {
             $form.on( 'changelanguage', function() {
-                //console.debug( 'change language event detected, going to update', widget.name );
                 $els[ widget.name ]( 'update' );
             } );
         }
-    }
+    };
 
     /**
      * Calls widget('update') on select-type widgets when the options change.This function is called upon initialization,
@@ -196,15 +206,14 @@ define( [ 'text!enketo-config', 'Modernizr', 'jquery' ], function( configStr, Mo
      * @param {jQuery}         $els   The jQuery collection of elements that the widget has been instantiated on.
      */
 
-    function setOptionChangeHandler( widget, $els ) {
+    _setOptionChangeHandler = function( widget, $els ) {
         if ( $els.length > 0 && $els.prop( 'nodeName' ).toLowerCase() === 'select' ) {
             $form.on( 'changeoption', 'select', function() {
-                //console.debug( 'option change detected, going to update', widget.name, 'for', $( this ) );
-                //update (itemselect) picker on which event was triggered because the options changed
+                // update (itemselect) picker on which event was triggered because the options changed
                 $( this )[ widget.name ]( 'update' );
             } );
         }
-    }
+    };
 
     return {
         init: init,

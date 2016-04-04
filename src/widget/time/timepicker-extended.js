@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstrap3-timepicker/js/bootstrap-timepicker' ],
-    function( Widget, Modernizr, $ ) {
-        "use strict";
+define( [ 'enketo-js/Widget', 'enketo-js/support', 'jquery', 'enketo-widget/time/bootstrap3-timepicker/js/bootstrap-timepicker' ],
+    function( Widget, support, $ ) {
+        'use strict';
 
         var pluginName = 'timepickerExtended';
 
@@ -31,7 +31,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
          * @param {*=}                            event     event
          */
 
-        function TimepickerExtended( element, options, event ) {
+        function TimepickerExtended( element, options ) {
             this.namespace = pluginName;
             //call the Super constructor
             Widget.call( this, element, options );
@@ -49,7 +49,6 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
          */
         TimepickerExtended.prototype._init = function() {
             var $timeI = $( this.element ),
-                $p = $( this ).parent( 'label' ),
                 timeVal = $( this.element ).val(),
                 $fakeTime = $( '<div class="widget bootstrap-timepicker">' +
                     '<input class="ignore timepicker-default input-small" readonly="readonly" type="text" value="' + timeVal + '" placeholder="hh:mm" />' +
@@ -78,7 +77,7 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
             } );
 
             //reset button
-            $fakeTimeReset.on( 'click', function( event ) {
+            $fakeTimeReset.on( 'click', function() {
                 $fakeTimeI.val( '' ).trigger( 'change' );
             } );
 
@@ -95,15 +94,16 @@ define( [ 'enketo-js/Widget', 'Modernizr', 'jquery', 'enketo-widget/time/bootstr
                 var $this = $( this ),
                     data = $this.data( pluginName );
 
-                if ( !data && typeof options === 'object' && ( !options.touch || !Modernizr.inputtypes.time ) ) {
+                if ( !data && typeof options === 'object' && ( !options.touch || !support.inputtypes.time ) ) {
                     $this.data( pluginName, ( data = new TimepickerExtended( this, options, event ) ) );
                 }
                 //only call method if widget was instantiated before
-                else if ( data && typeof options == 'string' ) {
+                else if ( data && typeof options === 'string' ) {
                     //pass the element as a parameter as this is used in fix()
                     data[ options ]( this );
                 }
             } );
         };
 
+        return pluginName;
     } );

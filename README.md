@@ -1,4 +1,4 @@
-enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.svg?branch=master)](https://travis-ci.org/enketo/enketo-core) [![devDependency Status](https://david-dm.org/enketo/enketo-core/dev-status.svg)](https://david-dm.org/enketo/enketo-core#info=devDependencies)
+enketo-core [![Build Status](https://travis-ci.org/enketo/enketo-core.svg?branch=master)](https://travis-ci.org/enketo/enketo-core) [![devDependency Status](https://david-dm.org/enketo/enketo-core/dev-status.svg)](https://david-dm.org/enketo/enketo-core#info=devDependencies) [![Codacy Badge](https://www.codacy.com/project/badge/dc1c5aaa9267d75cbd2d6714d2b4fa32)](https://www.codacy.com/app/martijn_1548/enketo-core)
 ================
 
 The engine that powers [Enketo Smart Paper](https://enketo.org) and various third party tools.
@@ -7,10 +7,10 @@ This repo is meant to use as a building block for your own enketo-powered applic
 
 Follow the [Enketo blog](http://blog.enketo.org) or [Enketo on twitter](https://twitter.com/enketo) to stay up to date.
 
-###Usage as a library
+### Usage as a library
 
-1. Add as a git submodule (future: bower)
-2. Develop a way to perform an XSL Transformation on OpenRosa-flavoured XForms inside your app. The transformation will output an XML instance and a HTML form. See [enketo-xslt-transformer-php](https://github.com/MartijnR/enketo-xslt-transformer-php) for an example. For development purposes you may also use the free (and slow, not robust at all) API provided by Enketo LLC at [http://xslt-dev.enketo.org/](http://xslt-dev.enketo.org/) (add `?xform=http://myforms.com/myform.xml` to use API).
+1. Add as a git submodule (future: bower and/or npm)
+2. Develop a way to perform an XSL Transformation on OpenRosa-flavoured XForms inside your app. The transformation will output an XML instance and a HTML form. See [enketo-transformer](https://github.com/enketo/enketo-transformer) for an example. For development purposes you may also use the free (and slow, not robust at all) API provided by Enketo LLC at [http://xslt-dev.enketo.org/](http://xslt-dev.enketo.org/) (add `?xform=http://myforms.com/myform.xml` to use API).
 3. Ignore (or copy parts of) [Gruntfile.js](Gruntfile.js), [config.json](config.json) and [app.js](app.js) and create your own app's build system instead
 4. Main methods illustrated in code below:
 
@@ -27,18 +27,16 @@ requirejs(['js/Form'], function (Form){
 	var formSelector = 'form.or:eq(0)';
 
 	// required object containing data for the form
-	var data = {};
-
-	// required string of the default instance defined in the XForm
-	data.modelStr = globalXMLInstance;
-
-	// optional string of an existing instance to be edited
-	data.instanceStr = null;
-	// optional boolean whether this instance has been unsubmitted so far
-	data.unsubmitted = true;
-
-	// optional array of objects containing {id: 'someInstanceId', xmlStr: '<root>external instance content</root>'}
-	data.external = [];
+	var data = {
+		// required string of the default instance defined in the XForm
+		modelStr: globalXMLInstance,
+		// optional string of an existing instance to be edited
+		instanceStr: null,
+		// optional boolean whether this instance has been submitted already
+		submitted: false,
+		// optional array of objects containing {id: 'someInstanceId', xmlStr: '<root>external instance content</root>'}
+		external = []
+	};
 
 	// instantiate a form, with 2 parameters
 	var form = new Form( formSelector, data);
@@ -59,7 +57,7 @@ requirejs(['js/Form'], function (Form){
             form.resetView();
 
             // reinstantiate a new form with the default model 
-            form = new Form( 'form.or:eq(0)', modelStr);
+            form = new Form( 'form.or:eq(0)', { modelStr: modelStr } );
 
             // do what you want with the record
         }
@@ -67,7 +65,7 @@ requirejs(['js/Form'], function (Form){
 });
 ```
 
-###How to run to develop on enketo-core
+### How to run to develop on enketo-core
 
 1. install [node](http://nodejs.org/), [grunt-cli](http://gruntjs.com/getting-started), and bower
 2. clone the repo
@@ -75,17 +73,17 @@ requirejs(['js/Form'], function (Form){
 3. install most dependencies with `npm install` and `bower install`
 4. build and test with `grunt`
 5. start built-in server with `grunt server` 
-8. browse to [http://localhost:8080/forms/index.html](http://localhost:8080/forms/index.html)
+8. browse to [http://localhost:8005/forms/index.html](http://localhost:8005/forms/index.html)
 
-###How to create or extend widgets
+### How to create or extend widgets
 
 To create new widgets, I recommend using this [plugin template](https://gist.github.com/MartijnR/6943281). The option {touch: [boolean]}, is added automatically to all widgets to indicate whether the client is using a touchscreen device and whether the widgets are inside a newly cloned repeat.
 
 Each widget needs to fulfill following requirements:
 
 * be an AMD-compliant jQuery plugin
+* it needs to return its own name
 * be in its own folder with a config.json file, including
-	* `name: ` the name of the widget used to instantiate it, or null if the widget only contains scss (see select-likert)
 	* `selector: ` the selector of the elements to instantiate the widget on, or `null` if it needs to be applied globally
 	* `options: ` any default options to pass
 	* `stylesheet: ` path to stylesheet scss file relative to the widget's own folder
@@ -107,29 +105,39 @@ Each widget needs to fulfill following requirements:
 * send a `fakefocus` and `fakeblur` event to the original input when the widget gets focus or looses it (see select-desktop)
 * please write Jasmine specs and a runner.html in the widget's /test folder.....(yeah, need to do that for the existing widgets too...)
 
-###Notes for All Developers
+### Notes for All Developers
 
-* build with Grunt (using Compass for sass is also possible as long as config.json does not change)
+* build with Grunt
 * use `grunt watch` to automatically compile (sass) when a source file changes
 * requires webserver - one is included in this repo and can be fired up with `grunt server`
 * adding the querystring `touch=true` and reducing the window size allows you to simulate mobile touchscreens
 
-###Notes for JavaScript Developers
+### Notes for JavaScript Developers
 
 * The JS library uses Require.js
 * Will be moving back to Google Closure (Advanced Mode) in future (hence JSDoc comments should be maintained)
 * Still trying to find a JS Documentation system to use with grunt that likes Closure-style JSDoc
 * JavaScript style see [JsBeautifier](./.jsbeautifyrc) config file, the jsbeautifier check is added to the grunt `test` task. You can also manually run `grunt jsbeautifier:fix` to fix style issues (Note, I had to add `"ensure_newline_at_eof_on_save": true` to the Sublime Text 2 user settings to make grunt jsbeautifier happy with the style produced by the ST2 JsFormat plugin.)
-* Testing is done with Jasmine (in browser and headless with phantomjs `grunt test`)
+* Testing is done with Jasmine and Karma (all: `grunt karma`, headless: `grunt karma:headless`, browsers: `grunt karma:browsers`)
 * When making a pull request, please add tests where relevant
 
-###Notes for CSS Developers
+### Notes for CSS Developers
 
 The core can be fairly easily extended with alternative themes. 
-See the *default* and the *formhub* themes already included in /src/sass. 
+See the *plain*, the *grid*, and the *formhub* themes already included in /src/sass. 
 We would be happy to discuss whether your contribution should be a part of the core, the default theme or be turned into a new theme. 
 
-###Acknowledgements
+For custom themes that go beyond just changing colors and fonts, keep in mind all the different contexts for a theme:
+
+1. non-touchscreen vs touchscreen (add ?touch=true during development)
+2. default one-page-mode and multiple-pages-mode
+3. right-to-left form language vs left-to-right form language (!) - also the UI-language may have a different directionality
+4. screen view vs. print view
+5. questions inside a (nested) repeat group have a different background
+6. large screen size --> smaller screen size ---> smallest screen size 
+7. question in valid vs. invalid state
+
+### Acknowledgements
 
 I would like to acknowledge and thank the indirect contribution by the creators of the following excellent works that were used in the project:
 
@@ -137,7 +145,7 @@ I would like to acknowledge and thank the indirect contribution by the creators 
 * [Bootstrap Datepicker by eternicode](https://github.com/eternicode/bootstrap-datepicker)
 * [Bootstrap Timepicker by jdewit](http://jdewit.github.io/bootstrap-timepicker/)
 
-###Sponsors
+### Sponsors
 
 The development of this app and [enketo-core](https://github.com/enketo/enketo-core) was sponsored by:
 
@@ -149,18 +157,22 @@ The development of this app and [enketo-core](https://github.com/enketo/enketo-c
 * [KoBo Toolbox (Harvard Humanitarian Initiative)](https://kobotoolbox.org)
 * [Enketo LLC](https://enketo.org)
 
-###Related Projects
+### Related Projects
 
-* [Enketo Express](https://github.com/enketo/enketo-express) - A modern node.js version of Enketo Smart Paper
-* [Enketo Legacy](https://github.com/enketo/enketo-legacy) - The old not-so-modern version of Enketo Smart Paper
-* [Enketo XpathJS](https://github.com/enketo/enketo-xpathjs) - used inside this repo
-* [Enketo XSLT](https://github.com/enketo/enketo-xslt) - the XSLT sheets used to transform OpenRosa XForms into Enketo HTML forms
-* [Enketo XSLT Transformer PHP](https://github.com/enketo/enketo-xslt-transformer-php) - a minimalistic example in PHP of an XSLT transformer
-* [enketo-xslt-transformer-node] - To follow hopefully
+* [Enketo Express](https://github.com/enketo/enketo-express) - The modern node.js Enketo Smart Paper app
+* [Enketo Legacy](https://github.com/enketo/enketo-legacy) - The old PHP Enketo Smart Paper app 
+* [Enketo XpathJS](https://github.com/enketo/enketo-xpathjs) - The XPath evaluator used in the form engine (enketo-core)
+* [Enketo Transformer](https://github.com/enketo/enketo-transformer) - Node.js XSL Transformer module for Enketo.
+* [Enketo XSLT](https://github.com/enketo/enketo-xslt) - The XSLT sheets used to transform OpenRosa XForms into Enketo HTML forms
+* [Enketo XSLT Transformer PHP](https://github.com/enketo/enketo-xslt-transformer-php) - A minimalistic example in PHP of an XSLT transformer
 * [Enketo Dristhi](https://github.com/enketo/enketo-dristhi) - used inside an Android app around enketo
 * [Enketo JSON](https://github.com/enketo/enketo-json) - XML-JSON instance convertor used inside e.g. Dristhi
 
 ### Change log
 
-See [CHANGELOG](./CHANGELOG.md)
+See [change log](./CHANGELOG.md)
+
+### Performance (live)
+
+See [graphs](https://github.com/enketo/enketo-core-performance-monitor#live-results)
 

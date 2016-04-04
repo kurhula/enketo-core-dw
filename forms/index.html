@@ -4,15 +4,23 @@
 		<title>Enketo-Core Developer template</title>
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,600&amp;subset=latin,cyrillic-ext,cyrillic,greek-ext,greek,vietnamese,latin-ext' rel='stylesheet' type='text/css'>
 
-		<!--<link type="text/css" href="../build/css/default.css" media="all" rel="stylesheet" />-->
+		<!--<link type="text/css" href="../build/css/plain.css" media="all" rel="stylesheet" />-->
 		<link type="text/css" href="../build/css/formhub.css" media="all" rel="stylesheet" />
 		<!--<link type="text/css" href="../build/css/grid.css" media="all" rel="stylesheet" />-->
+
+		<!--<link type="text/css" href="../build/css/plain-print.css" media="print" rel="stylesheet" />-->
+		<link type="text/css" href="../build/css/formhub-print.css" media="print" rel="stylesheet" />
+		<!--<link type="text/css" href="../build/css/grid-pring.css" media="print" rel="stylesheet" />-->
 
 		<style typet="text/css">
 			.form-footer .disabled{
 				display: none;
 			}
 		</style>
+		<script>
+			// Do not remove the comment below. It is used in enketo-core-performance-monitor.
+			//{{globalModelStr}}
+	</script>
 
 	</head>
 	<body>
@@ -21,14 +29,16 @@
 				<section class="guidance">
 					<p>Add querystring to source of XForm, eg:</p>
 					<ul>
-						<li><a href="?xform=http://ona.io/enketo/forms/22197/form.xml">?xform=http://ona.io/enketo/forms/22197/form.xml</a></li>
+						<li><a href="?xform=https://ona.io/enketo/forms/68781/form.xml">?xform=https://ona.io/enketo/forms/68781/form.xml</a></li>
+						<li><a href="?xform=https://ona.io/enketo/forms/66458/form.xml">?xform=https://ona.io/enketo/forms/66458/form.xml</a></li>
 					</ul>
 				</section>
 				<header class="form-header clearfix">
 					<span class="form-language-selector"><span>Choose Language</span></span>
 				</header>
 
-				<!-- this is where the form will go -->			
+				<!-- Do not remove the comment below. It is used in enketo-core-performance-monitor. -->
+				<!-- {{<form>}} -->			
 				
 				<div class="form-footer">
 						<!-- 
@@ -49,7 +59,7 @@
 		</div>
 
 		<script src="//localhost:35729/livereload.js"></script>
-		<script type="text/javascript" data-main="../app.js" src="../lib/bower-components/requirejs/require.js"></script>
-		<!--<script type="text/javascript"  src="../build/js/combined.min.js"></script>-->
+		<!--<script type="text/javascript" data-main="../app.js" src="../lib/bower-components/requirejs/require.js"></script>-->
+		<script type="text/javascript"  src="../build/js/combined.min.js"></script>
 	</body>
 </html>

@@ -15,7 +15,7 @@
  */
 
 define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
-    "use strict";
+    'use strict';
 
     var pluginName = 'mobileSelectpicker';
 
@@ -86,9 +86,11 @@ define( [ 'jquery', 'enketo-js/Widget' ], function( $, Widget ) {
             if ( !data && typeof options === 'object' && options.touch ) {
                 $this.data( pluginName, ( data = new MobileSelectpicker( this, options, event ) ) );
             }
-            if ( data && typeof options == 'string' ) {
+            if ( data && typeof options === 'string' ) {
                 data[ options ]( this );
             }
         } );
     };
+
+    return pluginName;
 } );

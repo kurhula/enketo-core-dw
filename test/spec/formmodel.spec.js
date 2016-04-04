@@ -2,17 +2,57 @@ if ( typeof define !== 'function' ) {
     var define = require( 'amdefine' )( module );
 }
 
-define( [ "enketo-js/FormModel" ], function( Model ) {
+define( [ 'enketo-js/FormModel' ], function( Model ) {
 
     var getModel = function( filename ) {
-        return new Model( mockForms1[ filename ].xml_model );
+        var model = new Model( mockForms1[ filename ].xml_model );
+        model.init();
+        return model;
     };
 
-    describe( "Data node getter", function() {
+    // I don't remember why this functionality exists
+    describe( 'Primary instance node values', function() {
+        var model = new Model( '<model><instance><data><nodeA> 2  </nodeA></data></instance></model>' );
+        model.init();
+        it( 'are trimmed during initialization', function() {
+            expect( model.getStr() ).toEqual( '<data><nodeA>2</nodeA></data>' );
+        } );
+    } );
+
+    describe( 'Instantiating a model', function() {
+        var modelStr = '<model><instance><data id="data"><nodeA>2</nodeA></data></instance>' +
+            '<instance id="countries"><root><item><country>NL</country></item></root></instance></model>';
+
+        it( 'without options, it includes all instances', function() {
+            var model = new Model( modelStr );
+            model.init();
+            expect( model.xml.querySelector( 'model > instance#countries' ) ).not.toBeNull();
+            expect( model.xml.querySelector( 'model > instance#countries > root > item > country' ).textContent ).toEqual( 'NL' );
+        } );
+
+        it( 'with option.full = true, it includes all instances', function() {
+            var model = new Model( modelStr, {
+                full: true
+            } );
+            model.init();
+            expect( model.xml.querySelector( 'model > instance#countries' ) ).not.toBeNull();
+            expect( model.xml.querySelector( 'model > instance#countries > root > item > country' ).textContent ).toEqual( 'NL' );
+        } );
+
+        it( 'with options.full = false, strips the secondary instances', function() {
+            var model = new Model( modelStr, {
+                full: false
+            } );
+            model.init();
+            expect( model.xml.querySelector( 'model > instance#countries' ) ).toBeNull();
+        } );
+    } );
+
+    describe( 'Data node getter', function() {
         var i, t =
             [
-                [ "", null, null, 20 ],
-                [ "", null, {},
+                [ '', null, null, 20 ],
+                [ '', null, {},
                     20
                 ],
                 //["/", null, {}, 9], //issue with xfind, not important
@@ -23,103 +63,50 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
                     20
                 ],
                 [ null, null, {
-                        noTemplate: true
-                    },
-                    20
-                ],
-                [ null, null, {
-                        noTemplate: false
-                    },
-                    22
-                ],
-                [ null, null, {
-                        onlyTemplate: true
-                    },
-                    1
-                ],
-                [ null, null, {
                         noEmpty: true
                     },
                     9 //when tested outside Form class, instanceID is not populated
                 ],
-                [ null, null, {
-                        noEmpty: true,
-                        noTemplate: false
-                    },
-                    10 //when tested outside Form class, instanceID is not populated
-                ],
-                [ "/thedata/nodeA", null, null, 1 ],
-                [ "/thedata/nodeA", 1, null, 0 ],
-                [ "/thedata/nodeA", null, {
+                [ '/thedata/nodeA', null, null, 1 ],
+                [ '/thedata/nodeA', 1, null, 0 ],
+                [ '/thedata/nodeA', null, {
                         noEmpty: true
                     },
                     0
                 ], //"int"
-                [ "/thedata/nodeA", null, {
+                [ '/thedata/nodeA', null, {
                         onlyleaf: true
                     },
                     1
                 ],
-                [ "/thedata/nodeA", null, {
-                        onlyTemplate: true
-                    },
-                    0
-                ],
-                [ "/thedata/nodeA", null, {
-                        noTemplate: true
-                    },
-                    1
-                ],
-                [ "/thedata/nodeA", null, {
-                        noTemplate: false
-                    },
-                    1
-                ],
-                [ "/thedata/repeatGroup", null, null, 3 ],
-                [ "/thedata/repeatGroup", null, {
-                        onlyTemplate: true
-                    },
-                    1
-                ],
-                [ "/thedata/repeatGroup", null, {
-                        noTemplate: false
-                    },
-                    4
-                ],
-                [ "//nodeC", null, null, 3 ],
-                [ "/thedata/repeatGroup/nodeC", null, null, 3 ],
-                [ "/thedata/repeatGroup/nodeC", 2, null, 1 ],
-                [ "/thedata/repeatGroup/nodeC", null, {
+                [ '/thedata/repeatGroup', null, null, 3 ],
+
+                [ '//nodeC', null, null, 3 ],
+                [ '/thedata/repeatGroup/nodeC', null, null, 3 ],
+                [ '/thedata/repeatGroup/nodeC', 2, null, 1 ],
+                [ '/thedata/repeatGroup/nodeC', null, {
                         noEmpty: true
                     },
                     2
                 ],
-                [ "/thedata/repeatGroup/nodeC", null, {
+                [ '/thedata/repeatGroup/nodeC', null, {
                         onlyleaf: true
                     },
                     3
-                ],
-                [ "/thedata/repeatGroup/nodeC", null, {
-                        onlyTemplate: true
-                    },
-                    0
-                ],
-                [ "/thedata/repeatGroup/nodeC", null, {
-                        noTemplate: true
-                    },
-                    3
-                ],
-                [ "/thedata/repeatGroup/nodeC", null, {
-                        noTemplate: false
-                    },
-                    4
                 ]
             ],
-            data = getModel( 'thedata.xml' ); //form.Data(dataStr1);
+            model = new Model( '<model><instance><thedata id="thedata"><nodeA/><nodeB>b</nodeB>' +
+                '<repeatGroup template=""><nodeC>cdefault</nodeC></repeatGroup><repeatGroup><nodeC/></repeatGroup>' +
+                '<repeatGroup><nodeC>c2</nodeC></repeatGroup>' +
+                '<repeatGroup><nodeC>c3</nodeC></repeatGroup>' +
+                '<somenodes><A>one</A><B>one</B><C>one</C></somenodes><someweights><w1>1</w1><w2>3</w2><w.3>5</w.3></someweights><nodeF/>' +
+                '<meta><instanceID/></meta></thedata></instance></model>' );
+
+        model.init();
 
         function test( node ) {
-            it( "obtains nodes (selector: " + node.selector + ", index: " + node.index + ", filter: " + JSON.stringify( node.filter ) + ")", function() {
-                expect( data.node( node.selector, node.index, node.filter ).get().length ).toEqual( node.result );
+            it( 'obtains nodes (selector: ' + node.selector + ', index: ' + node.index + ', filter: ' + JSON.stringify( node.filter ) + ')', function() {
+                expect( model.node( node.selector, node.index, node.filter ).get().length ).toEqual( node.result );
             } );
         }
         for ( i = 0; i < t.length; i++ ) {
@@ -137,102 +124,102 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
         var data = getModel( 'thedata.xml' ); //dataStr1);
 
         it( 'returns an array of one node value', function() {
-            expect( data.node( "/thedata/nodeB" ).getVal() ).toEqual( [ 'b' ] );
+            expect( data.node( '/thedata/nodeB' ).getVal() ).toEqual( [ 'b' ] );
         } );
 
         it( 'returns an array of multiple node values', function() {
-            expect( data.node( "/thedata/repeatGroup/nodeC" ).getVal() ).toEqual( [ '', 'c2', 'c3' ] );
+            expect( data.node( '/thedata/repeatGroup/nodeC' ).getVal() ).toEqual( [ '', 'c2', 'c3' ] );
         } );
 
         it( 'returns an empty array', function() {
-            expect( data.node( "/thedata/nodeX" ).getVal() ).toEqual( [] );
+            expect( data.node( '/thedata/nodeX' ).getVal() ).toEqual( [] );
         } );
 
         it( 'obtains a node value of a node with a . in the name', function() {
-            expect( data.node( "/thedata/someweights/w.3" ).getVal() ).toEqual( [ '5' ] );
+            expect( data.node( '/thedata/someweights/w.3' ).getVal() ).toEqual( [ '5' ] );
         } );
     } );
 
     describe( 'Data node XML data type conversion & validation', function() {
         var i, data,
             t = [
-                [ "/thedata/nodeA", null, null, 'val1', null, true ],
-                [ "/thedata/nodeA", null, null, 'val3', 'somewrongtype', true ], //default type is string
+                [ '/thedata/nodeA', null, null, 'val1', null, true ],
+                [ '/thedata/nodeA', null, null, 'val3', 'somewrongtype', true ], //default type is string
 
-                [ "/thedata/nodeA", 1, null, 'val13', 'string', null ], //non-existing node
-                [ "/thedata/repeatGroup/nodeC", null, null, 'val', null ], //multiple nodes
+                [ '/thedata/nodeA', 1, null, 'val13', 'string', null ], //non-existing node
+                [ '/thedata/repeatGroup/nodeC', null, null, 'val', null, null ], //multiple nodes
 
-                [ "/thedata/nodeA", 0, null, '4', 'double', true ], //double is a non-existing xml data type so turned into string
-                [ "/thedata/nodeA", 0, null, 5, 'double', true ],
+                [ '/thedata/nodeA', 0, null, '4', 'double', true ], //double is a non-existing xml data type so turned into string
+                [ '/thedata/nodeA', 0, null, 5, 'double', true ],
 
-                [ "/thedata/nodeA", null, null, 'val2', 'string', true ],
-                [ "/thedata/nodeA", 0, null, [ 'a', 'b', 'c' ], 'string', true ],
-                [ "/thedata/nodeA", 0, null, [ 'd', 'e', 'f', '' ], 'string', true ],
-                [ "/thedata/nodeA", 0, null, 'val12', 'string', true ],
-                [ "/thedata/nodeA", 0, null, '14', 'string', true ],
-                [ "/thedata/nodeA", 0, null, 1, 'string', true ],
+                [ '/thedata/nodeA', null, null, 'val2', 'string', true ],
+                [ '/thedata/nodeA', 0, null, [ 'a', 'b', 'c' ], 'string', true ],
+                [ '/thedata/nodeA', 0, null, [ 'd', 'e', 'f', '' ], 'string', true ],
+                [ '/thedata/nodeA', 0, null, 'val12', 'string', true ],
+                [ '/thedata/nodeA', 0, null, '14', 'string', true ],
+                [ '/thedata/nodeA', 0, null, 1, 'string', true ],
 
-                [ "/thedata/nodeA", null, null, 'val11', 'decimal', false ],
+                [ '/thedata/nodeA', null, null, 'val11', 'decimal', false ],
 
-                [ "/thedata/nodeA", null, null, 'val4', 'int', false ],
-                [ "/thedata/nodeA", 0, null, '2', 'int', true ],
-                [ "/thedata/nodeA", 0, null, 3, 'int', true ],
-                [ "/thedata/nodeA", 0, null, '2.', 'int', false ],
-                [ "/thedata/nodeA", 0, null, '2.0', 'int', false ],
+                [ '/thedata/nodeA', null, null, 'val4', 'int', false ],
+                [ '/thedata/nodeA', 0, null, '2', 'int', true ],
+                [ '/thedata/nodeA', 0, null, 3, 'int', true ],
+                [ '/thedata/nodeA', 0, null, '2.', 'int', false ],
+                [ '/thedata/nodeA', 0, null, '2.0', 'int', false ],
 
-                [ "/thedata/nodeA", null, null, 'val5565ghgyuyuy', 'date', false ], //Chrome turns val5 into a valid date...
-                [ "/thedata/nodeA", null, null, '2012-01-01', 'date', true ],
-                [ "/thedata/nodeA", null, null, '2012-12-32', 'date', false ],
-                //["/thedata/nodeA", null, null, 324, 'date', true], //fails in phantomjs
+                [ '/thedata/nodeA', null, null, 'val5565ghgyuyuy', 'date', false ], //Chrome turns val5 into a valid date...
+                [ '/thedata/nodeA', null, null, '2012-01-01', 'date', true ],
+                [ '/thedata/nodeA', null, null, '2012-12-32', 'date', false ],
+                //['/thedata/nodeA', null, null, 324, 'date', true], //fails in phantomjs
 
-                [ "/thedata/nodeA", null, null, 'val5565ghgyuyua', 'datetime', false ], //Chrome turns val10 into a valid date..
-                [ "/thedata/nodeA", null, null, '2012-01-01T00:00:00-06', 'datetime', true ],
-                [ "/thedata/nodeA", null, null, '2012-12-32T00:00:00-06', 'datetime', false ],
-                [ "/thedata/nodeA", null, null, '2012-12-31T23:59:59-06', 'datetime', true ],
-                [ "/thedata/nodeA", null, null, '2012-12-31T23:59:59-06:30', 'datetime', true ],
-                [ "/thedata/nodeA", null, null, '2012-12-31T23:59:59Z', 'datetime', true ],
-                [ "/thedata/nodeA", null, null, '2012-01-01T30:00:00-06', 'datetime', false ],
-                //["/thedata/nodeA", null, null, '2013-05-31T07:00-02', 'datetime', true],fails in phantomJSs
+                [ '/thedata/nodeA', null, null, 'val5565ghgyuyua', 'datetime', false ], //Chrome turns val10 into a valid date..
+                [ '/thedata/nodeA', null, null, '2012-01-01T00:00:00-06', 'datetime', true ],
+                [ '/thedata/nodeA', null, null, '2012-12-32T00:00:00-06', 'datetime', false ],
+                [ '/thedata/nodeA', null, null, '2012-12-31T23:59:59-06', 'datetime', true ],
+                [ '/thedata/nodeA', null, null, '2012-12-31T23:59:59-06:30', 'datetime', true ],
+                [ '/thedata/nodeA', null, null, '2012-12-31T23:59:59Z', 'datetime', true ],
+                [ '/thedata/nodeA', null, null, '2012-01-01T30:00:00-06', 'datetime', false ],
+                //['/thedata/nodeA', null, null, '2013-05-31T07:00-02', 'datetime', true],fails in phantomJSs
 
-                [ "/thedata/nodeA", null, null, 'a', 'time', false ],
-                [ "/thedata/nodeA", null, null, 'aa:bb', 'time', false ],
-                [ "/thedata/nodeA", null, null, '0:0', 'time', true ],
-                [ "/thedata/nodeA", null, null, '00:00', 'time', true ],
-                [ "/thedata/nodeA", null, null, '23:59', 'time', true ],
-                [ "/thedata/nodeA", null, null, '23:59:59', 'time', true ],
-                [ "/thedata/nodeA", null, null, '24:00', 'time', false ],
-                [ "/thedata/nodeA", null, null, '00:60', 'time', false ],
-                [ "/thedata/nodeA", null, null, '00:00:60', 'time', false ],
-                [ "/thedata/nodeA", null, null, '-01:00', 'time', false ],
-                [ "/thedata/nodeA", null, null, '00:-01', 'time', false ],
-                [ "/thedata/nodeA", null, null, '00:00:-01', 'time', false ],
-                [ "/thedata/nodeA", null, null, '13:17:00.000-07', 'time', true ],
+                [ '/thedata/nodeA', null, null, 'a', 'time', false ],
+                [ '/thedata/nodeA', null, null, 'aa:bb', 'time', false ],
+                [ '/thedata/nodeA', null, null, '0:0', 'time', true ],
+                [ '/thedata/nodeA', null, null, '00:00', 'time', true ],
+                [ '/thedata/nodeA', null, null, '23:59', 'time', true ],
+                [ '/thedata/nodeA', null, null, '23:59:59', 'time', true ],
+                [ '/thedata/nodeA', null, null, '24:00', 'time', false ],
+                [ '/thedata/nodeA', null, null, '00:60', 'time', false ],
+                [ '/thedata/nodeA', null, null, '00:00:60', 'time', false ],
+                [ '/thedata/nodeA', null, null, '-01:00', 'time', false ],
+                [ '/thedata/nodeA', null, null, '00:-01', 'time', false ],
+                [ '/thedata/nodeA', null, null, '00:00:-01', 'time', false ],
+                [ '/thedata/nodeA', null, null, '13:17:00.000-07', 'time', true ],
 
-                [ "/thedata/nodeA", null, null, 'val2', 'barcode', true ],
+                [ '/thedata/nodeA', null, null, 'val2', 'barcode', true ],
 
-                [ "/thedata/nodeA", null, null, '0 0 0 0', 'geopoint', true ],
-                [ "/thedata/nodeA", null, null, '10 10', 'geopoint', true ],
-                [ "/thedata/nodeA", null, null, '10 10 10', 'geopoint', true ],
-                [ "/thedata/nodeA", null, null, '-90 -180', 'geopoint', true ],
-                [ "/thedata/nodeA", null, null, '90 180', 'geopoint', true ],
-                [ "/thedata/nodeA", null, null, '-91 -180', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '-90 -181', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '91 180', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '90 -181', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, 'a -180', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '0 a', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '0', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '0 0 a', 'geopoint', false ],
-                [ "/thedata/nodeA", null, null, '0 0 0 a', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '0 0 0 0', 'geopoint', true ],
+                [ '/thedata/nodeA', null, null, '10 10', 'geopoint', true ],
+                [ '/thedata/nodeA', null, null, '10 10 10', 'geopoint', true ],
+                [ '/thedata/nodeA', null, null, '-90 -180', 'geopoint', true ],
+                [ '/thedata/nodeA', null, null, '90 180', 'geopoint', true ],
+                [ '/thedata/nodeA', null, null, '-91 -180', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '-90 -181', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '91 180', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '90 -181', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, 'a -180', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '0 a', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '0', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '0 0 a', 'geopoint', false ],
+                [ '/thedata/nodeA', null, null, '0 0 0 a', 'geopoint', false ],
 
-                [ "/thedata/nodeA", null, null, 'NaN', 'int', null ], //value remains "" so null 
-                [ "/thedata/nodeA", null, null, 'NaN', 'decimal', null ] //value remains "" so null
+                [ '/thedata/nodeA', null, null, 'NaN', 'int', null ], //value remains "" so null 
+                [ '/thedata/nodeA', null, null, 'NaN', 'decimal', null ] //value remains "" so null
 
                 //TO DO binary (?)
             ];
 
         function test( n ) {
-            it( "converts and validates xml-type " + n.type + " with value: " + n.value, function() {
+            it( 'converts and validates xml-type ' + n.type + ' with value: ' + n.value, function() {
                 data = getModel( 'thedata.xml' ); //dataStr1);
                 expect( data.node( n.selector, n.index, n.filter ).setVal( n.value, null, n.type ) ).toEqual( n.result );
             } );
@@ -296,36 +283,26 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
 
     } );
 
-    describe( "Data node cloner", function() {
-        it( "has cloned a data node", function() {
+    describe( 'Data node remover', function() {
+        it( 'has removed a data node', function() {
             var data = getModel( 'thedata.xml' ),
-                node = data.node( "/thedata/nodeA" ),
-                $precedingTarget = data.node( "/thedata/repeatGroup/nodeC", 0 ).get();
-
-            expect( data.node( '/thedata/repeatGroup/nodeA', 0 ).get().length ).toEqual( 0 );
-            node.clone( $precedingTarget );
-            expect( data.node( '/thedata/repeatGroup/nodeA', 0 ).get().length ).toEqual( 1 );
-        } );
-    } );
-
-    describe( "Data node remover", function() {
-        it( "has removed a data node", function() {
-            var data = getModel( 'thedata.xml' ),
-                node = data.node( "/thedata/nodeA" );
+                node = data.node( '/thedata/nodeA' );
 
             expect( node.get().length ).toEqual( 1 );
-            data.node( "/thedata/nodeA" ).remove();
+            /*data.node( '/thedata/nodeA' )*/
+            node.remove();
             expect( node.get().length ).toEqual( 0 );
+            expect( data.node( '/thedata/nodeA' ).get().length ).toEqual( 0 );
         } );
     } );
 
-    describe( "XPath Evaluator (see github.com/MartijnR/xpathjs_javarosa for comprehensive tests!)", function() {
+    describe( 'XPath Evaluator (see github.com/MartijnR/xpathjs_javarosa for comprehensive tests!)', function() {
         var i, t = [
-                [ "/thedata/nodeB", "string", null, 0, "b" ],
-                [ "../nodeB", "string", "/thedata/nodeA", 0, "b" ],
-                [ "/thedata/nodeB", "boolean", null, 0, true ],
-                [ "/thedata/notexist", "boolean", null, 0, false ],
-                [ "/thedata/repeatGroup[2]/nodeC", "string", null, 0, "c2" ],
+                [ '/thedata/nodeB', 'string', null, 0, 'b' ],
+                [ '../nodeB', 'string', '/thedata/nodeA', 0, 'b' ],
+                [ '/thedata/nodeB', 'boolean', null, 0, true ],
+                [ '/thedata/notexist', 'boolean', null, 0, false ],
+                [ '/thedata/repeatGroup[2]/nodeC', 'string', null, 0, 'c2' ],
                 [ '/thedata/repeatGroup[position()=3]/nodeC', 'string', null, 0, 'c3' ],
                 [ 'coalesce(/thedata/nodeA, /thedata/nodeB)', 'string', null, 0, 'b' ],
                 [ 'coalesce(/thedata/nodeB, /thedata/nodeA)', 'string', null, 0, 'b' ],
@@ -335,7 +312,7 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
             data = getModel( 'thedata.xml' );
 
         function test( expr, resultType, contextSelector, index, result ) {
-            it( "evaluates XPath: " + expr, function() {
+            it( 'evaluates XPath: ' + expr, function() {
                 expect( data.evaluate( expr, resultType, contextSelector, index ) ).toEqual( result );
             } );
         }
@@ -346,113 +323,133 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
 
         // this tests the makeBugCompliant() workaround that injects a position into an absolute path
         // for the issue described here: https://bitbucket.org/javarosa/javarosa/wiki/XFormDeviations
-        it( "evaluates a repaired absolute XPath inside a repeat (makeBugCompliant())", function() {
+        it( 'evaluates a repaired absolute XPath inside a repeat (makeBugCompliant())', function() {
             //data = getModel( 'thedata.xml' ); //new Form(formStr1, dataStr1);
 
-            expect( data.evaluate( "/thedata/repeatGroup/nodeC", "string", "/thedata/repeatGroup/nodeC", 2 ) ).toEqual( "c3" );
+            expect( data.evaluate( '/thedata/repeatGroup/nodeC', 'string', '/thedata/repeatGroup/nodeC', 2 ) ).toEqual( 'c3' );
         } );
 
         it( 'is able to address a secondary instance by id with the instance(id)/path/to/node syntax', function() {
             var dataO = getModel( 'new_cascading_selections.xml' );
-            expect( dataO.evaluate( "instance('cities')/root/item/name", "string" ) ).toEqual( 'ams' );
-            expect( dataO.evaluate( "instance('cities')/root/item[country=/new_cascading_selections/group4/country4]/name", "string" ) ).toEqual( 'den' );
-            expect( dataO.evaluate( "instance('cities')/root/item[country=/new_cascading_selections/group4/country4 and 1<2]", "nodes" ).length ).toEqual( 3 );
-            expect( dataO.evaluate( "instance('cities')/root/item[country=/new_cascading_selections/group4/country4 and name=/new_cascading_selections/group4/city4]", "nodes" ).length ).toEqual( 1 );
+            expect( dataO.evaluate( 'instance("cities")/root/item/name', 'string' ) ).toEqual( 'ams' );
+            expect( dataO.evaluate( 'instance("cities")/root/item[country=/new_cascading_selections/group4/country4]/name', 'string' ) ).toEqual( 'den' );
+            expect( dataO.evaluate( 'instance("cities")/root/item[country=/new_cascading_selections/group4/country4 and 1<2]', 'nodes' ).length ).toEqual( 3 );
+            expect( dataO.evaluate( 'instance("cities")/root/item[country=/new_cascading_selections/group4/country4 and name=/new_cascading_selections/group4/city4]', 'nodes' ).length ).toEqual( 1 );
         } );
     } );
 
-
-    describe( 'functionality to obtain string of the XML instance (DataXML.getStr() for storage or uploads)', function() {
-        var str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12,
-            modelA = getModel( 'new_cascading_selections.xml' ),
-            modelB = getModel( 'thedata.xml' );
-        modelA.init();
-        modelB.init();
-        str1 = modelA.getStr();
-        str2 = modelA.getStr( null, null );
-        str3 = modelA.getStr( false, false );
-        str4 = modelA.getStr( true, false );
-        str5 = modelA.getStr( false, true );
-        str6 = modelA.getStr( true, true );
-        str7 = modelA.getStr( true, true, false );
-        str8 = modelA.getStr( null, null, true );
-        str9 = modelA.getStr( true, true, true );
-
-        str10 = modelB.getStr();
-        str11 = modelB.getStr( true );
-        str12 = modelB.getStr( false, false, true );
-
-        testModelPresent = function( str ) {
-            return isValidXML( str ) && new RegExp( /^<model/g ).test( str );
-        };
-        testInstancePresent = function( str ) {
-            return isValidXML( str ) && new RegExp( /<instance[\s|>]/g ).test( str );
-        };
-        testInstanceNumber = function( str ) {
-            return str.match( /<instance[\s|>]/g ).length;
-        };
-        //testNamespacePresent = function(str){return isValidXML(str) && new RegExp(/xmlns=/).test(str);};
-        testTemplatePresent = function( str ) {
-            return isValidXML( str ) && new RegExp( /template=/ ).test( str );
-        };
-        isValidXML = function( str ) {
-            var $xml;
-            try {
-                $xml = $.parseXML( str );
-            } catch ( e ) {}
-            return typeof $xml === 'object';
-        };
-
-        it( 'returns a string of the primary instance only when called without 3rd parameter: true', function() {
-            expect( testModelPresent( str1 ) ).toBe( false );
-            expect( testInstancePresent( str1 ) ).toBe( false );
-            expect( testModelPresent( str2 ) ).toBe( false );
-            expect( testInstancePresent( str2 ) ).toBe( false );
-            expect( testModelPresent( str3 ) ).toBe( false );
-            expect( testInstancePresent( str3 ) ).toBe( false );
-            expect( testModelPresent( str4 ) ).toBe( false );
-            expect( testInstancePresent( str4 ) ).toBe( false );
-            expect( testModelPresent( str5 ) ).toBe( false );
-            expect( testInstancePresent( str5 ) ).toBe( false );
-            expect( testModelPresent( str6 ) ).toBe( false );
-            expect( testInstancePresent( str6 ) ).toBe( false );
-            expect( testModelPresent( str7 ) ).toBe( false );
-            expect( testInstancePresent( str7 ) ).toBe( false );
+    describe( 'functionality to obtain string of the primary XML instance for storage or uploads)', function() {
+        it( 'returns primary instance without templates - A', function() {
+            var model = new Model( '<model xmlns:jr="http://openrosa.org/javarosa"><instance><data><group jr:template=""><a/></group></data></instance></model>' );
+            model.init();
+            expect( model.getStr() ).toEqual( '<data><group><a/></group></data>' );
         } );
 
-        it( 'returns a string of the model and all instances when called with 3rd parameter: true', function() {
-            expect( testModelPresent( str8 ) ).toBe( true );
-            expect( testInstancePresent( str8 ) ).toBe( true );
-            expect( testInstanceNumber( str8 ) ).toBe( 4 );
-            expect( testModelPresent( str9 ) ).toBe( true );
-            expect( testInstancePresent( str9 ) ).toBe( true );
-            expect( testInstanceNumber( str9 ) ).toBe( 4 );
-            expect( testInstancePresent( str12 ) ).toBe( true );
-            expect( testInstanceNumber( str12 ) ).toBe( 1 );
+        it( 'returns primary instance without templates - B', function() {
+            var model = new Model( '<model><instance><data><group    template=""><a/></group></data></instance></model>' );
+            model.init();
+            expect( model.getStr() ).toEqual( '<data><group><a/></group></data>' );
         } );
 
-        it( 'returns a string with repeat templates included when called with 1st parameter: true', function() {
-            expect( testTemplatePresent( str10 ) ).toBe( false );
-            expect( testTemplatePresent( str11 ) ).toBe( true );
+        it( 'returns primary instance and leaves namespaces intact', function() {
+            var model = new Model( '<model><instance><data xmlns="https://some.namespace.com/"><a/></data></instance></model>' );
+            model.init();
+            expect( model.getStr() ).toEqual( '<data xmlns="https://some.namespace.com/"><a/></data>' );
         } );
-
     } );
 
-    describe( 'output data functionality', function() {
-        var model;
+    describe( 'converting absolute paths', function() {
+        [
+            // to be converted
+            [ '/path/to/node', '/model/instance[1]/path/to/node' ],
+            [ '/_member_/new/*', '/model/instance[1]/_member_/new/*' ],
+            [ '/_member-/new/*', '/model/instance[1]/_member-/new/*' ],
+            [ '/models/to/node', '/model/instance[1]/models/to/node' ],
+            [ '/*/meta/instanceID', '/model/instance[1]/*/meta/instanceID' ],
+            [ '/outputs_in_repeats/rep/name', '/model/instance[1]/outputs_in_repeats/rep/name' ],
+            [ '/path/to/node[/path/to/node]', '/model/instance[1]/path/to/node[/model/instance[1]/path/to/node]' ],
+            [ '/path/to/node[ /path/to/node ]', '/model/instance[1]/path/to/node[ /model/instance[1]/path/to/node ]' ],
+            [ 'concat(/output_in_repeats/to/node, "2")', 'concat(/model/instance[1]/output_in_repeats/to/node, "2")' ],
+            [ 'concat(/path/to/node, "2")', 'concat(/model/instance[1]/path/to/node, "2")' ],
+            [ 'concat( /path/to/node, "2" )', 'concat( /model/instance[1]/path/to/node, "2" )' ],
 
-        it( 'outputs a clone of the primary instance first child as a jQuery object if the object is wrapped inside <instance> and <model>', function() {
-            model = new Model( '<model><instance><node/></instance><instance id="secondary"><secondary/></instance></model>' );
-            expect( model.getInstanceClone().length ).toEqual( 1 );
-            expect( model.getInstanceClone().prop( 'nodeName' ) ).toEqual( 'node' );
+            // to leave unchanged
+            [ 'path/to/node' ],
+            [ 'concat(path/to/node, "2")' ],
+            [ '../path/to/node' + '../node' ],
+            [ '/model/path/to/node' ]
+
+        ].forEach( function( test ) {
+            it( 'converts correctly when the model and instance node are included in the model', function() {
+                var model = new Model( '<model><instance/></model>' );
+                var expected = test[ 1 ] || test[ 0 ];
+                model.init();
+                expect( model.shiftRoot( test[ 0 ] ) ).toEqual( expected );
+            } );
+            it( 'does nothing if model and instance node are absent in the model', function() {
+                var model = new Model( '<data><nodeA/></data>' );
+                expect( model.shiftRoot( test[ 0 ] ) ).toEqual( test[ 0 ] );
+            } );
+        } );
+    } );
+
+    describe( 'converting instance("id") to absolute paths', function() {
+        [
+            [ 'instance("a")/path/to/node', '/model/instance[@id="a"]/path/to/node' ]
+
+        ].forEach( function( test ) {
+            it( 'happens correctly', function() {
+                var model = new Model( '<model><instance/></model>' );
+                var expected = test[ 1 ];
+                model.init();
+                expect( model.replaceInstanceFn( test[ 0 ] ) ).toEqual( expected );
+            } );
+        } );
+    } );
+
+    describe( 'converting expressions with current()', function() {
+        [
+            [ 'instance("a")/path/to/node[current()/.. = /path/to/value]', 'instance("a")/path/to/node[.. = /path/to/value]' ],
+            [ 'instance("a")/path/to/node[current()/. = /path/to/value]', 'instance("a")/path/to/node[. = /path/to/value]' ],
+            [ 'instance("a")/path/to/node[current()/path/to/wut = /path/to/value]', 'instance("a")/path/to/node[/path/to/wut = /path/to/value]' ]
+
+        ].forEach( function( test ) {
+            it( 'happens correctly', function() {
+                var model = new Model( '<model><instance/></model>' );
+                var expected = test[ 1 ];
+                model.init();
+                expect( model.replaceCurrentFn( test[ 0 ] ) ).toEqual( expected );
+            } );
+        } );
+    } );
+
+    describe( 'converting indexed-repeat() ', function() {
+        [
+            [ 'indexed-repeat(/path/to/repeat/node, /path/to/repeat, 2)', '/path/to/repeat[position() = 2]/node' ],
+            [ ' indexed-repeat( /path/to/repeat/node , /path/to/repeat , 2 )', ' /path/to/repeat[position() = 2]/node' ],
+            [ '1 + indexed-repeat(/path/to/repeat/node, /path/to/repeat, 2)', '1 + /path/to/repeat[position() = 2]/node' ],
+            [ 'concat(indexed-repeat(/path/to/repeat/node, /path/to/repeat, 2), "fluff")', 'concat(/path/to/repeat[position() = 2]/node, "fluff")' ],
+            [ 'indexed-repeat(/p/t/r/ar/node, /p/t/r, 2, /p/t/r/ar, 3 )', '/p/t/r[position() = 2]/ar[position() = 3]/node' ]
+        ].forEach( function( test ) {
+            it( 'works, with a number as 3rd (5th, 7th) parameter', function() {
+                var model = new Model( '<model><instance/></model>' );
+                var expected = test[ 1 ];
+                model.init();
+                expect( model.replaceIndexedRepeatFn( test[ 0 ] ) ).toEqual( expected );
+            } );
         } );
 
-        it( 'outputs a clone of the first node as a jQuery object if the object is NOT wrapped inside <instance> and <model>', function() {
-            model = new Model( '<node/>' );
-            expect( model.getInstanceClone().length ).toEqual( 1 );
-            expect( model.getInstanceClone().prop( 'nodeName' ) ).toEqual( 'node' );
+        [
+            [ 'indexed-repeat( /p/t/r/node,  /p/t/r , position(..)    )', '/p/t/r[position() = 3]/node' ],
+            [ 'indexed-repeat( /p/t/r/node,  /p/t/r , position(..) - 1)', '/p/t/r[position() = 2]/node' ],
+        ].forEach( function( test ) {
+            it( 'works, with an expresssion as 3rd (5th, 7th) parameter', function() {
+                var model = new Model( '<model><instance><p><t><r><node/></r><r><node/></r><r><node/></r></t></p></instance></model>' );
+                var expected = test[ 1 ];
+                model.init();
+                expect( model.replaceIndexedRepeatFn( test[ 0 ], '/p/t/r/node', 2 ) ).toEqual( expected );
+            } );
         } );
-
     } );
 
     describe( 'external instances functionality', function() {
@@ -470,36 +467,110 @@ define( [ "enketo-js/FormModel" ], function( Model ) {
         } );
 
         it( 'populates matching external instances', function() {
-            model = new Model( modelStr, [ {
-                id: 'cities',
-                xmlStr: citiesStr
-            }, {
-                id: 'neighborhoods',
-                xmlStr: '<root/>'
-            }, {
-                id: 'countries',
-                xmlStr: '<root/>'
-            } ] );
+            model = new Model( {
+                modelStr: modelStr,
+                external: [ {
+                    id: 'cities',
+                    xmlStr: citiesStr
+                }, {
+                    id: 'neighborhoods',
+                    xmlStr: '<root/>'
+                }, {
+                    id: 'countries',
+                    xmlStr: '<root/>'
+                } ]
+            } );
             loadErrors = model.init();
             expect( loadErrors.length ).toEqual( 0 );
             expect( model.$.find( 'instance#cities > root > item > country:eq(0)' ).text() ).toEqual( 'nl' );
         } );
 
         it( 'outputs errors if an external instance is not valid XML', function() {
-            model = new Model( modelStr, [ {
-                id: 'cities',
-                xmlStr: '<root>'
-            }, {
-                id: 'neighborhoods',
-                xmlStr: '<root/>'
-            }, {
-                id: 'countries',
-                xmlStr: '<root/>'
-            } ] );
+            model = new Model( {
+                modelStr: modelStr,
+                external: [ {
+                    id: 'cities',
+                    xmlStr: '<root>'
+                }, {
+                    id: 'neighborhoods',
+                    xmlStr: '<root/>'
+                }, {
+                    id: 'countries',
+                    xmlStr: '<root/>'
+                } ]
+            } );
             loadErrors = model.init();
             expect( loadErrors.length ).toEqual( 4 );
-            expect( loadErrors[ 0 ] ).toEqual( 'Error trying to parse XML instance "cities".' );
+            expect( loadErrors[ 0 ] ).toEqual( 'Error trying to parse XML instance "cities". Invalid XML: <root>' );
         } );
+    } );
+
+    describe( 'getting templates', function() {
+        var model = new Model( '<model></model>' );
+        model.templates = {
+            '/path/to/some/repeat/template': 'a template'
+        };
+
+        it( 'works for the exact path to the repeat', function() {
+            expect( model.getTemplatePath( '/path/to/some/repeat/template' ) ).toEqual( '/path/to/some/repeat/template' );
+        } );
+
+        it( 'works for a child node of the template', function() {
+            expect( model.getTemplatePath( '/path/to/some/repeat/template/group/leaf' ) ).toEqual( '/path/to/some/repeat/template' );
+        } );
+
+        it( 'returns undefined when template is not available', function() {
+            expect( model.getTemplatePath( '/path' ) ).not.toBeDefined();
+        } );
+    } );
+
+    describe( 'auto-cloning repeats in empty model', function() {
+        var model = new Model( '<model xmlns:jr="http://openrosa.org/javarosa"><instance><data><rep1 jr:template=""><one/><rep2 jr:template=""><two/>' +
+            '<rep3 jr:template=""><three/></rep3></rep2></rep1></data></instance></model>' );
+        model.init();
+
+        it( 'works for nested repeats', function() {
+            expect( model.getStr() ).toEqual( '<data><rep1><one/><rep2><two/><rep3><three/></rep3></rep2></rep1></data>' );
+        } );
+
+    } );
+
+    describe( 'Using XPath with default namespace', function() {
+
+        describe( 'on the primary instance child', function() {
+            var model = new Model( '<model><instance><data xmlns="http://unknown.namespace.com/34324sdagd"><nodeA>5</nodeA></data></instance></model>' );
+
+            model.init();
+
+            it( 'works for Nodeset().get()', function() {
+                expect( model.node( '/data/nodeA' ).get().length ).toEqual( 1 );
+                expect( model.node( '/data/nodeA' ).getVal()[ 0 ] ).toEqual( '5' );
+            } );
+
+            it( 'works for evaluate()', function() {
+                expect( model.evaluate( '/data/nodeA', 'nodes' ).length ).toEqual( 1 );
+                expect( model.evaluate( '/data/nodeA', 'string' ) ).toEqual( '5' );
+            } );
+
+        } );
+
+        describe( ' on the model', function() {
+            var model = new Model( '<model xmlns="http://www.w3.org/2002/xforms"><instance><data><nodeA>5</nodeA></data></instance></model>' );
+
+            model.init();
+
+            it( 'works for Nodeset().get()', function() {
+                expect( model.node( '/data/nodeA' ).get().length ).toEqual( 1 );
+                expect( model.node( '/data/nodeA' ).getVal()[ 0 ] ).toEqual( '5' );
+            } );
+
+            it( 'works for evaluate()', function() {
+                expect( model.evaluate( '/data/nodeA', 'nodes' ).length ).toEqual( 1 );
+                expect( model.evaluate( '/data/nodeA', 'string' ) ).toEqual( '5' );
+            } );
+
+        } );
+
     } );
 
 } );

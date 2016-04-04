@@ -2,7 +2,7 @@ if ( typeof define !== 'function' ) {
     var define = require( 'amdefine' )( module );
 }
 
-define( [ "enketo-js/Form" ], function( Form ) {
+define( [ 'enketo-js/Form' ], function( Form ) {
 
     var loadForm = function( filename, editStr ) {
         var strings = mockForms1[ filename ];
@@ -12,7 +12,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
     };
 
-    describe( "Output functionality ", function() {
+    describe( 'Output functionality ', function() {
         // These tests were orginally meant for modilabs/enketo issue #141. However, they passed when they were
         // failing in the enketo client itself (same form). It appeared the issue was untestable (except manually)
         // since the issue was resolved by updating outputs with a one millisecond delay (!).
@@ -23,16 +23,16 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
         form.init();
 
-        it( "tested upon initialization: node random__", function() {
+        it( 'tested upon initialization: node random__', function() {
             expect( form.getView().$.find( '[data-value="/random/random__"]' ).text().length ).toEqual( 17 );
         } );
 
-        it( "tested upon initialization: node uuid__", function() {
+        it( 'tested upon initialization: node uuid__', function() {
             expect( form.getView().$.find( '[data-value="/random/uuid__"]' ).text().length ).toEqual( 36 );
         } );
     } );
 
-    describe( "Output functionality within repeats", function() {
+    describe( 'Output functionality within repeats', function() {
         var $o = [],
             form = loadForm( 'outputs_in_repeats.xml' );
         form.init();
@@ -59,10 +59,10 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
     } );
 
-    describe( "Preload and MetaData functionality", function() {
+    describe( 'Preload and MetaData functionality', function() {
         var form, t;
 
-        it( "ignores a calculate binding on [ROOT]/meta/instanceID", function() {
+        it( 'ignores a calculate binding on [ROOT]/meta/instanceID', function() {
             form = new Form( formStr2, {
                 modelStr: dataStr2
             } );
@@ -70,7 +70,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getModel().node( '/random/meta/instanceID' ).getVal()[ 0 ].length ).toEqual( 41 );
         } );
 
-        it( "generates an instanceID on meta/instanceID WITHOUT preload binding", function() {
+        it( 'generates an instanceID on meta/instanceID WITHOUT preload binding', function() {
             form = new Form( formStr2, {
                 modelStr: dataStr2
             } );
@@ -80,7 +80,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getModel().node( '/random/meta/instanceID' ).getVal()[ 0 ].length ).toEqual( 41 );
         } );
 
-        it( "generates an instanceID WITH preload binding", function() {
+        it( 'generates an instanceID WITH preload binding', function() {
             form = new Form( formStr3, {
                 modelStr: dataStr2
             } );
@@ -91,7 +91,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getModel().node( '/random/meta/instanceID' ).getVal()[ 0 ].length ).toEqual( 41 );
         } );
 
-        it( "does not generate a new instanceID if one is already present", function() {
+        it( 'does not generate a new instanceID if one is already present', function() {
             form = new Form( formStr3, {
                 modelStr: dataStr3
             } );
@@ -99,7 +99,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getModel().node( '/random/meta/instanceID' ).getVal()[ 0 ] ).toEqual( 'c13fe058-3349-4736-9645-8723d2806c8b' );
         } );
 
-        it( "generates a timeStart on meta/timeStart WITHOUT preload binding", function() {
+        it( 'generates a timeStart on meta/timeStart WITHOUT preload binding', function() {
             form = new Form( formStr2, {
                 modelStr: dataStr2
             } );
@@ -109,7 +109,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getModel().node( '/random/meta/timeStart' ).getVal()[ 0 ].length > 10 ).toBe( true );
         } );
 
-        it( "generates a timeEnd on init and updates this after a beforesave event WITHOUT preload binding", function() {
+        it( 'generates a timeEnd on init and updates this after a beforesave event WITHOUT preload binding', function() {
             var timeEnd, timeEndNew;
             //jasmine.Clock.useMock();
             form = new Form( formStr2, {
@@ -133,7 +133,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         function testPreloadExistingValue( node ) {
-            it( "obtains unchanged preload value of item (WITH preload binding): " + node.selector + "", function() {
+            it( 'obtains unchanged preload value of item (WITH preload binding): ' + node.selector + '', function() {
                 form = new Form( formStr5, {
                     modelStr: dataStr5a
                 } );
@@ -143,7 +143,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         }
 
         function testPreloadNonExistingValue( node ) {
-            it( "populates previously empty preload item (WITH preload binding): " + node.selector + "", function() {
+            it( 'populates previously empty preload item (WITH preload binding): ' + node.selector + '', function() {
                 form = new Form( formStr5, {
                     modelStr: dataStr5b
                 } );
@@ -170,7 +170,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             [ '/widgets/meta/instanceID', 'uuid:56c19c6c-08e6-490f-a783-e7f3db788ba8' ]
         ];
 
-        for ( i = 0; i < t.length; i++ ) {
+        for ( var i = 0; i < t.length; i++ ) {
             testPreloadExistingValue( {
                 selector: t[ i ][ 0 ],
                 result: t[ i ][ 1 ]
@@ -188,11 +188,11 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
     } );
 
-    describe( "Loading instance values into html input fields functionality", function() {
+    describe( 'Loading instance values into html input fields functionality', function() {
         var form;
 
         it( 'correctly populates input fields of non-repeat node names in the instance', function() {
-            form = loadForm( 'thedata.xml' ); //new Form(formStr1, dataStr1);
+            form = loadForm( 'thedata.xml' );
             form.init();
             expect( form.getView().$.find( '[name="/thedata/nodeB"]' ).val() ).toEqual( 'b' );
             expect( form.getView().$.find( '[name="/thedata/repeatGroup/nodeC"]' ).eq( 2 ).val() ).toEqual( 'c3' );
@@ -209,92 +209,8 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
     } );
 
-    describe( "Loading instance-to-edit functionality", function() {
-        var form, loadErrors;
-
-        describe( 'when a deprecatedID node is not present in the form format', function() {
-            form = loadForm( 'thedata.xml', dataEditStr1 ); //new Form(formStr1, dataStr1, dataEditStr1);
-            form.init();
-
-            it( "adds a deprecatedID node", function() {
-                expect( form.getModel().node( '* > meta > deprecatedID' ).get().length ).toEqual( 1 );
-            } );
-
-            //this is an important test even though it may not seem to be...
-            it( "includes the deprecatedID in the string to be submitted", function() {
-                expect( form.getModel().getStr().indexOf( '<deprecatedID>' ) ).not.toEqual( -1 );
-            } );
-
-            it( "gives the new deprecatedID node the old value of the instanceID node of the instance-to-edit", function() {
-                expect( form.getModel().node( '*>meta>deprecatedID' ).getVal()[ 0 ] ).toEqual( '7c990ed9-8aab-42ba-84f5-bf23277154ad' );
-            } );
-
-            it( "gives the instanceID node a new value", function() {
-                expect( form.getModel().node( '*>meta>instanceID' ).getVal()[ 0 ].length ).toEqual( 41 );
-                expect( form.getModel().node( '*>meta>instanceID' ).getVal()[ 0 ] ).not.toEqual( '7c990ed9-8aab-42ba-84f5-bf23277154ad' );
-            } );
-
-            it( "adds data from the instance-to-edit to the form instance", function() {
-                expect( form.getModel().node( '/thedata/nodeA' ).getVal()[ 0 ] ).toEqual( '2012-02-05T15:34:00.000-04:00' );
-                expect( form.getModel().node( '/thedata/repeatGroup/nodeC', 0 ).getVal()[ 0 ] ).toEqual( 'some data one' );
-                expect( form.getModel().node( '/thedata/repeatGroup/nodeC', 4 ).getVal()[ 0 ] ).toEqual( 'some data five' );
-            } );
-
-        } );
-
-        describe( 'when instanceID and deprecatedID nodes are already present in the form format', function() {
-            form = loadForm( 'thedata.xml', dataEditStr1 ); //new Form(formStr1, dataEditStr1, dataEditStr1);
-            form.init();
-
-            it( "does not NOT add another instanceID node", function() {
-                expect( form.getModel().node( '*>meta>instanceID' ).get().length ).toEqual( 1 );
-            } );
-
-            it( "does not NOT add another deprecatedID node", function() {
-                expect( form.getModel().node( '*>meta>deprecatedID' ).get().length ).toEqual( 1 );
-            } );
-
-            it( "gives the deprecatedID node the old value of the instanceID node of the instance-to-edit", function() {
-                expect( form.getModel().node( '*>meta>deprecatedID' ).getVal()[ 0 ] ).toEqual( '7c990ed9-8aab-42ba-84f5-bf23277154ad' );
-            } );
-
-            it( "gives the instanceID node a new value", function() {
-                expect( form.getModel().node( '*>meta>instanceID' ).getVal()[ 0 ].length ).toEqual( 41 );
-                expect( form.getModel().node( '*>meta>instanceID' ).getVal()[ 0 ] ).not.toEqual( '7c990ed9-8aab-42ba-84f5-bf23277154ad' );
-            } );
-
-            it( "adds data from the instance-to-edit to the form instance", function() {
-                expect( form.getModel().node( '/thedata/nodeA' ).getVal()[ 0 ] ).toEqual( '2012-02-05T15:34:00.000-04:00' );
-                expect( form.getModel().node( '/thedata/repeatGroup/nodeC', 0 ).getVal()[ 0 ] ).toEqual( 'some data one' );
-            } );
-        } );
-
-        describe( 'returns load errors upon initialization', function() {
-            it( 'when the instance-to-edit contains nodes that are not present in the default instance', function() {
-                var dataEditStr1a = dataEditStr1.replace( /thedata/g, 'thedata_updated' );
-                form = loadForm( 'thedata.xml', dataEditStr1a ); //new Form(formStr1, dataStr1, dataEditStr1a);
-                loadErrors = form.init();
-                //console.log( 'loadErrors: ', loadErrors );
-                expect( loadErrors.length ).toEqual( 11 );
-            } );
-
-            it( 'when an instance-to-edit is provided with double instanceID nodes', function() {
-                var dataEditStr1a = dataEditStr1.replace( '</thedata>', '<meta><instanceID>uuid:3b35ac780c10468d8be7d8c44f3b17df</instanceID></meta></thedata>' );
-                //first check it does not return erors when single instanceID node is present
-                form = loadForm( 'thedata.xml', dataEditStr1 ); //new Form(formStr1, dataStr1, dataEditStr1);
-                loadErrors = form.init();
-                expect( loadErrors.length ).toEqual( 0 );
-                //then with the incorrect instance
-                form = loadForm( 'thedata.xml', dataEditStr1a ); //new Form(formStr1, dataStr1, dataEditStr1a);
-                loadErrors = form.init();
-                expect( loadErrors.length ).toEqual( 1 );
-                expect( loadErrors[ 0 ] ).toEqual( "Found duplicate meta node (instanceID)!" );
-            } );
-        } );
-    } );
-
     describe( 'repeat functionality', function() {
-        var form, timerCallback;
+        var form;
 
         //turn jQuery animations off
         jQuery.fx.off = true;
@@ -305,7 +221,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
                 form.init();
             } );
 
-            it( "removes the correct instance and HTML node when the '-' button is clicked (issue 170)", function() {
+            it( 'removes the correct instance and HTML node when the ' - ' button is clicked (issue 170)', function() {
                 var repeatSelector = '.or-repeat[name="/thedata/repeatGroup"]',
                     nodePath = '/thedata/repeatGroup/nodeC',
                     nodeSelector = 'input[name="' + nodePath + '"]',
@@ -327,7 +243,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
                 expect( formH.$.find( nodeSelector ).eq( index - 1 ).val() ).toEqual( 'c2' );
             } );
 
-            it( "marks cloned invalid fields as valid", function() {
+            it( 'marks cloned invalid fields as valid', function() {
                 var repeatSelector = '.or-repeat[name="/thedata/repeatGroup"]',
                     nodeSelector = 'input[name="/thedata/repeatGroup/nodeC"]',
                     formH = form.getView(),
@@ -350,12 +266,11 @@ define( [ "enketo-js/Form" ], function( Form ) {
             } );
         } );
 
-        it( "clones nested repeats if they are present in the instance upon initialization (issue #359) ", function() {
+        it( 'clones nested repeats if they are present in the instance upon initialization (issue #359) ', function() {
             //note that this form contains multiple repeats in the instance
             form = loadForm( 'nested_repeats.xml' );
             form.init();
             var formH = form.getView(),
-                model = form.getModel(),
                 $1stLevelTargetRepeat = formH.$.find( '.or-repeat[name="/nested_repeats/kids/kids_details"]' ).eq( 1 ),
                 $2ndLevelTargetRepeats = $1stLevelTargetRepeat.find( '.or-repeat[name="/nested_repeats/kids/kids_details/immunization_info"]' );
 
@@ -364,11 +279,10 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         //doesn't work in bloody Travis. STFU Travis!
-        xit( "doesn't duplicate date widgets in a cloned repeat", function() {
+        xit( 'doesn\'t duplicate date widgets in a cloned repeat', function() {
             form = loadForm( 'nested_repeats.xml' );
             form.init();
             var formH = form.getView(),
-                model = form.getModel(),
                 $dates = formH.$.find( '[name="/nested_repeats/kids/kids_details/immunization_info/date"]' );
 
             expect( $dates.length ).toEqual( 5 );
@@ -377,7 +291,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
     } );
 
     describe( 'calculations', function() {
-        var formH, dataO, input1, input2,
+        var formH, dataO,
             form = loadForm( 'calcs_in_repeats.xml' );
         form.init();
         formH = form.getView();
@@ -391,17 +305,10 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
     } );
 
-
     describe( 'branching functionality', function() {
-        var form;
 
-        beforeEach( function() {
-            //turn jQuery animations off
-            jQuery.fx.off = true;
-        } );
-
-        it( "hides irrelevant branches upon initialization", function() {
-            form = new Form( formStr6, {
+        it( 'hides irrelevant branches upon initialization', function() {
+            var form = new Form( formStr6, {
                 modelStr: dataStr6
             } );
             form.init();
@@ -409,8 +316,8 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getView().$.find( '[name="/data/nodeC"]' ).parents( '.disabled' ).length ).toEqual( 1 );
         } );
 
-        it( "reveals a group branch when the relevant condition is met", function() {
-            form = new Form( formStr6, {
+        it( 'reveals a group branch when the relevant condition is met', function() {
+            var form = new Form( formStr6, {
                 modelStr: dataStr6
             } );
             form.init();
@@ -422,8 +329,8 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( form.getView().$.find( '[name="/data/group"]' ).hasClass( 'disabled' ) ).toBe( false );
         } );
 
-        it( "reveals a question when the relevant condition is met", function() {
-            form = new Form( formStr6, {
+        it( 'reveals a question when the relevant condition is met', function() {
+            var form = new Form( formStr6, {
                 modelStr: dataStr6
             } );
             form.init();
@@ -442,8 +349,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
 	 */
         it( 'a) evaluates relevant logic on a repeated radio-button-question and b) injects the position correctly (issue 208)', function() {
             var repeatSelector = '.or-repeat[name="/issue208/rep"]';
-            //form = new Form(formStr7, dataStr7);
-            form = loadForm( 'issue208.xml' );
+            var form = loadForm( 'issue208.xml' );
             form.init();
 
             form.getView().$.find( repeatSelector ).eq( 0 ).find( 'button.repeat' ).click();
@@ -463,7 +369,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         it( 're-evaluates when a node with a relative path inside a relevant expression is changed', function() {
-            form = loadForm( 'relative.xml' );
+            var form = loadForm( 'relative.xml' );
             form.init();
             var $form = form.getView().$,
                 $a = $form.find( '[name="/relative/a"]' ),
@@ -475,7 +381,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         describe( 'when used with calculated items', function() {
-            form = loadForm( 'calcs.xml' );
+            var form = loadForm( 'calcs.xml' );
             form.init();
             var $node = form.getView().$.find( '[name="/calcs/cond1"]' );
             var dataO = form.getModel();
@@ -499,7 +405,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         describe( 'inside repeats when multiple repeats are present upon loading (issue #507)', function() {
-            form = loadForm( 'multiple_repeats_relevant.xml' );
+            var form = loadForm( 'multiple_repeats_relevant.xml' );
             form.init();
             var $relNodes = form.getView().$.find( '[name="/multiple_repeats_relevant/rep/skipq"]' ).parent( '.or-branch' );
             it( 'correctly evaluates the relevant logic of each question inside all repeats', function() {
@@ -509,10 +415,32 @@ define( [ "enketo-js/Form" ], function( Form ) {
                 expect( $relNodes.eq( 1 ).hasClass( 'disabled' ) ).toBe( true );
             } );
         } );
+
+        describe( 'in nested branches ', function() {
+            var form = new Form( formStr7, {
+                modelStr: dataStr7
+            } );
+            form.init();
+            var $nestedBranch = form.getView().$.find( '[name="/data/group/nodeC"]' ).closest( '.question' );
+
+            it( 'works correctly when an ancestor branch gets enabled', function() {
+                expect( $nestedBranch.closest( '.disabled' ).length ).toEqual( 1 );
+                // enable parent branch
+                //expect( form.getModel().getStr() ).toEqual( 'wut' );
+                form.getModel().node( '/data/nodeA', 0 ).setVal( '1' );
+                expect( $nestedBranch.closest( '.disabled' ).length ).toEqual( 0 );
+                // check if nested branch has been initialized and is enabled
+                expect( $nestedBranch.hasClass( 'pre-init' ) ).toBe( false );
+                expect( $nestedBranch.hasClass( 'disabled' ) ).toBe( false );
+            } );
+
+
+        } );
+
     } );
 
     describe( 'Required field validation', function() {
-        var form, $numberInput, $branch;
+        var form, $numberInput, $numberLabel;
 
         beforeEach( function() {
             jQuery.fx.off = true; //turn jQuery animations off
@@ -524,8 +452,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
             $numberLabel = form.getView().input.getWrapNodes( $numberInput );
         } );
 
-        //this fails in phantomJS...
-        xit( "validates a DISABLED and required number field without a value", function() {
+        it( 'validates a DISABLED and required number field without a value', function() {
             $numberInput.val( '' ).trigger( 'change' );
             expect( $numberLabel.length ).toEqual( 1 );
             expect( $numberInput.val().length ).toEqual( 0 );
@@ -534,7 +461,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
         } );
 
         //see issue #144
-        it( "validates an enabled and required number field with value 0 and 1", function() {
+        it( 'validates an enabled and required number field with value 0 and 1', function() {
             form.getView().$.find( '[name="/data/nodeA"]' ).val( 'yes' ).trigger( 'change' );
             expect( $numberLabel.length ).toEqual( 1 );
             $numberInput.val( 0 ).trigger( 'change' ).trigger( 'validate' );
@@ -543,13 +470,13 @@ define( [ "enketo-js/Form" ], function( Form ) {
             expect( $numberLabel.hasClass( 'invalid-required' ) ).toBe( false );
         } );
 
-        it( "invalidates an enabled and required number field without a value", function() {
+        it( 'invalidates an enabled and required number field without a value', function() {
             form.getView().$.find( '[name="/data/nodeA"]' ).val( 'yes' ).trigger( 'change' );
             $numberInput.val( '' ).trigger( 'change' ).trigger( 'validate' );
             expect( $numberLabel.hasClass( 'invalid-required' ) ).toBe( true );
         } );
 
-        it( "invalidates an enabled and required textarea that contains only a newline character or other whitespace characters", function() {
+        it( 'invalidates an enabled and required textarea that contains only a newline character or other whitespace characters', function() {
             form = loadForm( 'thedata.xml' ); //new Form(formStr1, dataStr1);
             form.init();
             var $textarea = form.getView().$.find( '[name="/thedata/nodeF"]' );
@@ -588,7 +515,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
                 form.init();
 
                 formHTMLO = form.getView();
-                spyOn( formHTMLO, 'itemsetUpdate' ).andCallThrough();
+                spyOn( formHTMLO, 'itemsetUpdate' ).and.callThrough();
 
                 $items1Radio = function() {
                     return form.getView().$.find( sel1Radio );
@@ -619,72 +546,50 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
             it( 'level 2: with <input type="radio"> elements has the expected amount of options', function() {
                 //select first option in cascade
-                runs( function() {
-                    form.getView().$.find( sel1Radio + '[value="nl"]' ).prop( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Radio + '[value="nl"]' ).prop( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'country';
-                    } );
-                }, 'itemsetUpdate not called!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'country';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Radio().length ).toEqual( 2 );
-                    expect( $items2Radio().length ).toEqual( 3 );
-                    expect( $items2Radio().siblings().text() ).toEqual( 'AmsterdamAmsterdamRotterdamRotterdamDrontenDronten' );
-                    expect( $items3Radio().length ).toEqual( 0 );
-                } );
+                expect( $items1Radio().length ).toEqual( 2 );
+                expect( $items2Radio().length ).toEqual( 3 );
+                expect( $items2Radio().siblings().text() ).toEqual( 'AmsterdamAmsterdamRotterdamRotterdamDrontenDronten' );
+                expect( $items3Radio().length ).toEqual( 0 );
             } );
 
             it( 'level 3: with <input type="radio"> elements has the expected amount of options', function() {
                 //select first option
-                runs( function() {
-                    form.getView().$.find( sel1Radio + '[value="nl"]' ).attr( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Radio + '[value="nl"]' ).attr( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'country';
-                    } );
-                }, 'itemsetUpdate not called!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'country';
+                } ) ).toEqual( true );
 
                 //select second option
-                runs( function() {
-                    form.getView().$.find( sel2Radio + '[value="ams"]' ).attr( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel2Radio + '[value="ams"]' ).attr( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'city';
-                    } );
-                }, 'itemsetUpdate not called!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'city';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Radio().length ).toEqual( 2 );
-                    expect( $items2Radio().length ).toEqual( 3 );
-                    expect( $items3Radio().length ).toEqual( 2 );
-                    expect( $items3Radio().siblings().text() ).toEqual( 'WesterparkWesterparkDe DamDam' );
-                } );
+                expect( $items1Radio().length ).toEqual( 2 );
+                expect( $items2Radio().length ).toEqual( 3 );
+                expect( $items3Radio().length ).toEqual( 2 );
+                expect( $items3Radio().siblings().text() ).toEqual( 'WesterparkWesterparkDe DamDam' );
 
                 //select other first option to change itemset
-                runs( function() {
-                    form.getView().$.find( sel1Radio + '[value="nl"]' ).attr( 'checked', false );
-                    form.getView().$.find( sel1Radio + '[value="usa"]' ).attr( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Radio + '[value="nl"]' ).attr( 'checked', false );
+                form.getView().$.find( sel1Radio + '[value="usa"]' ).attr( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'city';
-                    } );
-                }, 'itemsetUpdate not called!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'city';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Radio().length ).toEqual( 2 );
-                    expect( $items2Radio().length ).toEqual( 3 );
-                    expect( $items2Radio().siblings().text() ).toEqual( 'DenverDenverNieuw AmsterdamNew York CityDe EngelenLos Angeles' );
-                    expect( $items3Radio().length ).toEqual( 0 );
-                } );
+                expect( $items1Radio().length ).toEqual( 2 );
+                expect( $items2Radio().length ).toEqual( 3 );
+                expect( $items2Radio().siblings().text() ).toEqual( 'DenverDenverNieuw AmsterdamNew York CityDe EngelenLos Angeles' );
+                expect( $items3Radio().length ).toEqual( 0 );
             } );
 
             it( 'level 1: with <select> <option> elements has the expected amount of options', function() {
@@ -696,74 +601,52 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
             it( 'level 2: with <select> <option> elements has the expected amount of options', function() {
                 //select first option in cascade
-                runs( function() {
-                    form.getView().$.find( sel1Select ).val( "nl" ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Select ).val( 'nl' ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'country2';
-                    } );
-                }, 'itemsetUpdate not called!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'country2';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Select().length ).toEqual( 2 );
-                    expect( $items2Select().length ).toEqual( 3 );
-                    expect( $items2Select().eq( 0 ).attr( 'value' ) ).toEqual( 'ams' );
-                    expect( $items2Select().eq( 2 ).attr( 'value' ) ).toEqual( 'dro' );
-                    expect( $items3Select().length ).toEqual( 0 );
-                } );
+                expect( $items1Select().length ).toEqual( 2 );
+                expect( $items2Select().length ).toEqual( 3 );
+                expect( $items2Select().eq( 0 ).attr( 'value' ) ).toEqual( 'ams' );
+                expect( $items2Select().eq( 2 ).attr( 'value' ) ).toEqual( 'dro' );
+                expect( $items3Select().length ).toEqual( 0 );
             } );
 
             it( 'level 3: with <select> <option> elements has the expected amount of options', function() {
                 //select first option in cascade
-                runs( function() {
-                    form.getView().$.find( sel1Select ).val( "nl" ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Select ).val( 'nl' ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'country2';
-                    } );
-                }, 'itemsetUpdate not called for country2!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'country2';
+                } ) ).toEqual( true );
 
                 //select second option
-                runs( function() {
-                    form.getView().$.find( sel2Select ).val( "ams" ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel2Select ).val( 'ams' ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'city2';
-                    } );
-                }, 'itemsetUpdate not called for city2 [1]!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'city2';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Select().length ).toEqual( 2 );
-                    expect( $items2Select().length ).toEqual( 3 );
-                    expect( $items3Select().length ).toEqual( 2 );
-                    expect( $items3Select().eq( 0 ).attr( 'value' ) ).toEqual( 'wes' );
-                    expect( $items3Select().eq( 1 ).attr( 'value' ) ).toEqual( 'dam' );
-                } );
+                expect( $items1Select().length ).toEqual( 2 );
+                expect( $items2Select().length ).toEqual( 3 );
+                expect( $items3Select().length ).toEqual( 2 );
+                expect( $items3Select().eq( 0 ).attr( 'value' ) ).toEqual( 'wes' );
+                expect( $items3Select().eq( 1 ).attr( 'value' ) ).toEqual( 'dam' );
 
                 //select other first option to change itemset
-                runs( function() {
-                    form.getView().$.find( sel1Select ).val( "usa" ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Select ).val( 'usa' ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'city2';
-                    } );
-                }, 'itemsetUpdate not called for city2 [2]!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'city2';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Select().length ).toEqual( 2 );
-                    expect( $items2Select().length ).toEqual( 3 );
-                    expect( $items2Select().eq( 0 ).attr( 'value' ) ).toEqual( 'den' );
-                    expect( $items2Select().eq( 2 ).attr( 'value' ) ).toEqual( 'la' );
-                    expect( $items3Select().length ).toEqual( 0 );
-                } );
+                expect( $items1Select().length ).toEqual( 2 );
+                expect( $items2Select().length ).toEqual( 3 );
+                expect( $items2Select().eq( 0 ).attr( 'value' ) ).toEqual( 'den' );
+                expect( $items2Select().eq( 2 ).attr( 'value' ) ).toEqual( 'la' );
+                expect( $items3Select().length ).toEqual( 0 );
             } );
         } );
 
@@ -779,7 +662,7 @@ define( [ "enketo-js/Form" ], function( Form ) {
                 form.init();
 
                 formHTMLO = form.getView();
-                spyOn( formHTMLO, 'itemsetUpdate' ).andCallThrough();
+                spyOn( formHTMLO, 'itemsetUpdate' ).and.callThrough();
 
                 $items1Radio = function() {
                     return form.getView().$.find( sel1Radio );
@@ -794,35 +677,25 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
             it( 'level 3: with <input type="radio"> elements using direct references to instance labels without itext has the expected amount of options', function() {
                 //select first option
-                runs( function() {
-                    form.getView().$.find( sel1Radio + '[value="washington"]' )
-                        .attr( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel1Radio + '[value="washington"]' )
+                    .attr( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'state';
-                    } );
-                }, 'itemsetUpdate not called for state!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'state';
+                } ) ).toEqual( true );
 
                 //select second option
-                runs( function() {
-                    form.getView().$.find( sel2Radio + '[value="king"]' )
-                        .attr( 'checked', true ).trigger( 'change' );
-                } );
+                form.getView().$.find( sel2Radio + '[value="king"]' )
+                    .attr( 'checked', true ).trigger( 'change' );
 
-                waitsFor( function() {
-                    return formHTMLO.itemsetUpdate.mostRecentCall.args[ 0 ].nodes.some( function( node ) {
-                        return node === 'county';
-                    } );
-                }, 'itemsetUpdate not called for county!', 1000 );
+                expect( formHTMLO.itemsetUpdate.calls.mostRecent().args[ 0 ].nodes.some( function( node ) {
+                    return node === 'county';
+                } ) ).toEqual( true );
 
-                runs( function() {
-                    expect( $items1Radio().length ).toEqual( 2 );
-                    expect( $items2Radio().length ).toEqual( 3 );
-                    expect( $items3Radio().length ).toEqual( 2 );
-                    expect( $items3Radio().siblings().text() ).toEqual( 'SeattleRedmond' );
-                } );
+                expect( $items1Radio().length ).toEqual( 2 );
+                expect( $items2Radio().length ).toEqual( 3 );
+                expect( $items3Radio().length ).toEqual( 2 );
+                expect( $items3Radio().siblings().text() ).toEqual( 'SeattleRedmond' );
             } );
         } );
 
@@ -860,18 +733,18 @@ define( [ "enketo-js/Form" ], function( Form ) {
 
 
     describe( 'clearing inputs', function() {
-        $fieldset = $( '<fieldset><input type="number" value="23" /><input type="text" value="abc" /><textarea>abcdef</textarea></fieldset>"' );
+        var $fieldset = $( '<fieldset><input type="number" value="23" /><input type="text" value="abc" /><textarea>abcdef</textarea></fieldset>"' );
 
         it( 'works!', function() {
-            expect( $fieldset.find( '[type="number"]' ).val() ).toEqual( "23" );
-            expect( $fieldset.find( '[type="text"]' ).val() ).toEqual( "abc" );
-            expect( $fieldset.find( 'textarea' ).val() ).toEqual( "abcdef" );
+            expect( $fieldset.find( '[type="number"]' ).val() ).toEqual( '23' );
+            expect( $fieldset.find( '[type="text"]' ).val() ).toEqual( 'abc' );
+            expect( $fieldset.find( 'textarea' ).val() ).toEqual( 'abcdef' );
 
             $fieldset.clearInputs();
 
-            expect( $fieldset.find( '[type="number"]' ).val() ).toEqual( "" );
-            expect( $fieldset.find( '[type="text"]' ).val() ).toEqual( "" );
-            expect( $fieldset.find( 'textarea' ).val() ).toEqual( "" );
+            expect( $fieldset.find( '[type="number"]' ).val() ).toEqual( '' );
+            expect( $fieldset.find( '[type="text"]' ).val() ).toEqual( '' );
+            expect( $fieldset.find( 'textarea' ).val() ).toEqual( '' );
 
         } );
     } );

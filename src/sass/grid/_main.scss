@@ -2,7 +2,7 @@
 @import "../formhub/form-controls";
 
 /** core/layout **/
-body, .main, .paper, .or, .or-group, .or-group-data, .or-repeat, .question, .trigger {
+body, .main, .paper, .or, .or-group, .or-group-data, .or-repeat, .question {
     position: relative;
 }
 
@@ -44,8 +44,8 @@ h4 + .or-repeat {
     @include border-box;
 }
 
-// override to flexboxes in pages mode
-.pages.or [role="page"].current {
+// override to flexboxes in pages mode, except when question = page
+.pages.or [role="page"].current:not(.question) {
     @include display-flex;
     @include flex-wrap(wrap);
     @include flex-direction(row);
@@ -69,15 +69,16 @@ h4 + .or-repeat {
 }
 
 // top-level questions border
-.or > .question, .or > .note, .or > .trigger {
+.or > .question, .or > .note {
     border: $grid-border;
-    ~ .question, .or > .note, .or > .trigger {
-        border-top: none;
-    }
+    // This is cheating for top-level questions to avoid thick double borders.
+    // Normally, recommend to group everything.
+    margin-left: -1px;
+    margin-top: -1px;
 }
 
 // undo default for visually merged successive notes
-.note + .note {
+.note:not(.disabled) + .note {
     margin-top: 0;
     border-top: none;
     border-bottom: $grid-border;
@@ -88,7 +89,7 @@ h4 + .or-repeat {
 }
 
 // griddable elements - ie. wrappers around questions and notes
-.question, .trigger, .note {
+.question, .note {
     @include flex(1, 1);
     @include border-box;
     border-bottom: $grid-border;
@@ -110,12 +111,12 @@ h4 + .or-repeat {
 // display: flex messes up img size so apply it sparingly only to questions
 // and not to notes. We loose the ability to display image labels nicely in 
 // questions (though fine in tables)
-.question, .note, .trigger {
+.question, .note {
     @include display-flex;
     @include flex-wrap(no-wrap);
     @include flex-direction(column);
     cursor: text;
-    &:not(.note):not(.trigger):not(.focus):hover {
+    &:not(.note):not(.focus):hover {
         background: $question-hover-bg;
     }
     &.focus {
@@ -124,7 +125,7 @@ h4 + .or-repeat {
     .required {
         position: absolute;
         top: -2px;
-        right: 2px;
+        right: 0;
     }
     .required-subtle {
         position: absolute;
@@ -149,6 +150,9 @@ h4 + .or-repeat {
     audio, video, img {
         order: 3;
     }
+    input[type=text], input[type=password], input[type=url], input[type=email], input[type=file],  input[type=date], input[type=time], input[type=datetime], input[type=number], textarea {
+        width: 100%;
+    }
     textarea {
         min-height: 2 * $input-height;
     }
@@ -162,6 +166,17 @@ h4 + .or-repeat {
     }
     .or-constraint-msg, .or-required-msg {
         order: 5;
+    }
+}
+
+.or[dir="rtl"] .question {
+    .required {
+        right: auto;
+        left: 0;
+    }
+    .required-subtle {
+        right: auto;
+        left: 2px;
     }
 }
 
@@ -183,7 +198,7 @@ h4 + .or-repeat {
 .or-repeat {
     margin: 0;
     padding: 0;
-    background: #efefef;
+    background: $repeat-bg;
     &.clone {}
     .repeat-number {
         position: absolute;
@@ -199,6 +214,7 @@ h4 + .or-repeat {
     .repeat-buttons {
         width: calc(100% + 1px);
         position: relative;
+        margin-top: 0;
     }
     .repeat, .remove {
         padding: 0;
@@ -228,7 +244,7 @@ legend {
     h3 {
         @include flex(1, 1);
         padding-top: 0;
-        text-align: left;
+        text-align: inherit;
     }
     h4 {
         @include flex(1, 1);
@@ -240,7 +256,7 @@ legend {
 }
 
 // the awesome grid
-@media print, screen and (min-width: 700px) {
+@media print, screen and (min-width: 600px) {
     @for $total from 1 through $max-columns {
         .or-appearance-w#{$total} {
             //default total of 4 if not provided

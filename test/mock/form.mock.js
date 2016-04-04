@@ -4,44 +4,44 @@
  */
 
 var dataEditStr1 =
-    "<thedata id='something'>" +
-    "<meta>" +
+    '<thedata id="something">' +
+    '<meta>' +
     '<instanceID>7c990ed9-8aab-42ba-84f5-bf23277154ad</instanceID>' +
     '<timeStart/>' +
     '<timeEnd/>' +
-    "</meta>" +
-    "<nodeA>2012-02-05T15:34:00.000-04</nodeA>" +
-    "<nodeB>b</nodeB>" +
-    "<repeatGroup>" +
-    "<nodeC>some data one</nodeC>" +
-    "</repeatGroup>" +
-    "<repeatGroup>" +
-    "<nodeC></nodeC>" +
-    "</repeatGroup>" +
-    "<repeatGroup>" +
-    "<nodeC></nodeC>" +
-    "</repeatGroup>" +
-    "<repeatGroup>" +
-    "<nodeC></nodeC>" +
-    "</repeatGroup>" +
-    "<repeatGroup>" +
-    "<nodeC>some data five</nodeC>" +
-    "</repeatGroup>" +
-    "<somenodes>" +
-    "<A>two</A>" +
-    "<B>three</B>" +
-    "<C>four</C>" +
-    "</somenodes>" +
-    "<someweights>" +
-    "<w1>1</w1>" +
-    "<w2>3</w2>" +
-    "<w.3>5</w.3>" +
-    "</someweights>" +
-    "</thedata>";
+    '</meta>' +
+    '<nodeA>2012-02-05T15:34:00.000-04</nodeA>' +
+    '<nodeB>b</nodeB>' +
+    '<repeatGroup>' +
+    '<nodeC>some data one</nodeC>' +
+    '</repeatGroup>' +
+    '<repeatGroup>' +
+    '<nodeC></nodeC>' +
+    '</repeatGroup>' +
+    '<repeatGroup>' +
+    '<nodeC></nodeC>' +
+    '</repeatGroup>' +
+    '<repeatGroup>' +
+    '<nodeC></nodeC>' +
+    '</repeatGroup>' +
+    '<repeatGroup>' +
+    '<nodeC>some data five</nodeC>' +
+    '</repeatGroup>' +
+    '<somenodes>' +
+    '<A>two</A>' +
+    '<B>three</B>' +
+    '<C>four</C>' +
+    '</somenodes>' +
+    '<someweights>' +
+    '<w1>1</w1>' +
+    '<w2>3</w2>' +
+    '<w.3>5</w.3>' +
+    '</someweights>' +
+    '</thedata>';
 
 var dataStr2 =
-    "<model>" +
-    '<instance xmlns="http://www.w3.org/2002/xforms">' +
+    '<model>' +
+    '<instance>' +
     '<random id="random"><formhub><uuid/></formhub>' +
     '<random__/>' +
     '<note_random/>' +
@@ -60,30 +60,16 @@ var formStr2 =
     '<form class="or" autocomplete="off" id="random">' +
     '<section class="form-logo"> </section>' +
     '<h2 id="form-title">Random<span></span></h2>' +
-    '<div id="stats" style="display: none;">' +
-    '<span id="jrSelect">0</span>' +
-    '<span id="jrSelect1">0</span>' +
-    '<span id="jrItem">0</span>' +
-    '<span id="jrItemset">0</span>' +
-    '<span id="jrInput">0</span>' +
-    '<span id="jrUpload">0</span>' +
-    '<span id="jrTrigger">2</span>' +
-    '<span id="jrRepeat">0</span>' +
-    '<span id="jrRelevant">0</span>' +
-    '<span id="jrConstraint">0</span>' +
-    '<span id="jrCalculate">4</span>' +
-    '<span id="jrPreload">0</span>' +
-    '</div>' +
     '<label class="question">' +
-    '<input name="/random/meta/instanceID" type="hidden" data-calculate="(1+1)" />' + /*******/
+    '<input name="/random/meta/instanceID" type="hidden" data-calculate="(1+1)" />' +
     '</label>' +
-    '<fieldset class="trigger ui-state-highlight" name="/random/note_random">' +
+    '<fieldset class="trigger" name="/random/note_random">' +
     '<div class="question-icons"><span class="required"></span><span class="hint"></span></div>' +
     '<span lang="en" class="active">This is the random number that was generated: ' +
     '<span class="or-output" data-value="/random/random__"></span>' +
     '</span>' +
     '</fieldset>' +
-    '<fieldset class="trigger ui-state-highlight" name="/random/note_uuid">' +
+    '<fieldset class="trigger" name="/random/note_uuid">' +
     '<div class="question-icons">' +
     '<span class="required"></span><span class="hint"></span>' +
     '</div>' +
@@ -283,21 +269,6 @@ var formStr5 =
     '<input name="/widgets/uid" type="hidden" data-preload="uid" data-preload-params="" data-type-xml="string"/>' +
     '</label>' +
     '<label class="question">' +
-    '<input name="/widgets/browser_name" type="hidden" data-preload="browser" data-preload-params="name" data-type-xml="string"/>' +
-    '</label>' +
-    '<label class="question">' +
-    '<input name="/widgets/browser_version" type="hidden" data-preload="browser" data-preload-params="version" data-type-xml="string"/>' +
-    '</label>' +
-    '<label class="question">' +
-    '<input name="/widgets/os_name" type="hidden" data-preload="os" data-preload-params="name" data-type-xml="string"/>' +
-    '</label>' +
-    '<label class="question">' +
-    '<input name="/widgets/os_version" type="hidden" data-preload="os" data-preload-params="version" data-type-xml="string"/>' +
-    '</label>' +
-    '<label class="question">' +
-    '<input name="/widgets/unknown" type="hidden" data-preload="unknown" data-preload-params="nothing" data-type-xml="string"/>' +
-    '</label>' +
-    '<label class="question">' +
     '<input name="/widgets/meta/instanceID" type="hidden" data-preload="instance" data-preload-params="" data-type-xml="string"/>' +
     '</label>' +
     '</fieldset>' +
@@ -306,7 +277,7 @@ var formStr5 =
 var dataStr6 =
     '<model>' +
     '<instance>' +
-    '<data id="TestGroupBranch" version="3" xmlns="http://rapaide.com/testGroupBranch">' +
+    '<data id="TestGroupBranch" version="3">' +
     '<nodeA/>' +
     '<group>' +
     '<nodeB/>' +
@@ -329,7 +300,7 @@ var formStr6 =
     '<input name="/data/nodeA" type="text" data-type-xml="string"/>' +
     '</label>' +
     '</fieldset>' +
-    '<fieldset class="or-group or-branch pre-init" name="/data/group" data-relevant="/data/nodeA = &quot;yes&quot">' +
+    '<fieldset class="or-group or-branch pre-init" name="/data/group" data-relevant="/data/nodeA = &quot;yes&quot;">' +
     '<h4><span lang="en">Group with relevant binding</span></h4>' +
     '<label class="question">' +
     '<span lang="en">Enter 2 to reveal select1</span>' +
@@ -345,6 +316,29 @@ var formStr6 =
     '<option value="b">option 3</option>' +
     '</select>' +
     '</label>' +
+    '</form>';
+
+var dataStr7 =
+    '<model>' +
+    '<instance>' +
+    '<data>' +
+    '<nodeA/>' +
+    '<nodeB>1</nodeB>' +
+    '<group>' +
+    '<nodeC/>' +
+    '</group>' +
+    '</data>' +
+    '</instance>' +
+    '</model>';
+
+var formStr7 =
+    '<form class="or">' +
+    '<fieldset class="or-group or-branch pre-init" name="/data/group" data-relevant="/data/nodeA > 0">' +
+    '<label class="question or-branch pre-init">' +
+    '<span>Enter 2 to reveal select1</span>' +
+    '<input name="/data/group/nodeC" type="number" data-type-xml="int" data-relevant="/data/nodeB > 0">' +
+    '</label>' +
+    '</fieldset>' +
     '</form>';
 
 var dataEditStr_nested_repeats =

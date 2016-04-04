@@ -16,7 +16,7 @@
 
 define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
     function( $, Widget, configStr, L, Q ) {
-        "use strict";
+        'use strict';
 
         var googleMapsScriptRequested, googleMapsScriptLoaded,
             pluginName = 'geopicker',
@@ -24,12 +24,12 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             defaultZoom = 15,
             // MapBox TileJSON format
             maps = ( config && config.maps && config.maps.length > 0 ) ? config.maps : [ {
-                "name": "streets",
-                "maxzoom": 24,
-                "tiles": [ "http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png" ],
-                "attribution": "Tiles courtesy of <a href=\"http://hot.openstreetmap.se/\" target=\"_blank\">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>"
+                'name': 'streets',
+                'maxzoom': 24,
+                'tiles': [ 'http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png' ],
+                'attribution': 'Tiles courtesy of <a href=\"http://hot.openstreetmap.se/\" target=\"_blank\">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>'
             } ],
-            searchSource = "https://maps.googleapis.com/maps/api/geocode/json?address={address}&sensor=true&key={api_key}",
+            searchSource = 'https://maps.googleapis.com/maps/api/geocode/json?address={address}&sensor=true&key={api_key}',
             googleApiKey = config.googleApiKey || config.google_api_key,
             iconSingle = L.divIcon( {
                 iconSize: 24,
@@ -53,7 +53,6 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
          */
 
         function Geopicker( element, options ) {
-            var that = this;
             this.namespace = pluginName;
             // call the super class constructor
             Widget.call( this, element, options );
@@ -72,9 +71,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
          */
         Geopicker.prototype._init = function() {
             var loadedVal = $( this.element ).val().trim(),
-                that = this,
-                defaultLatLng = [ 16.8164, -3.0171 ];
+                that = this;
 
+            this.$form = $( this.element ).closest( 'form.or' );
             this.$question = $( this.element ).closest( '.question' );
 
             this.mapId = Math.round( Math.random() * 10000000 );
@@ -97,11 +96,11 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
 
             // handle point input changes
             this.$widget.find( '[name="lat"], [name="long"], [name="alt"], [name="acc"]' ).on( 'change change.bymap change.bysearch', function( event ) {
-                var lat = that.$lat.val() ? Number( that.$lat.val() ) : "",
-                    lng = that.$lng.val() ? Number( that.$lng.val() ) : "",
+                var lat = that.$lat.val() ? Number( that.$lat.val() ) : '',
+                    lng = that.$lng.val() ? Number( that.$lng.val() ) : '',
                     // we need to avoid a missing alt in case acc is not empty!
-                    alt = that.$alt.val() ? Number( that.$alt.val() ) : "",
-                    acc = that.$acc.val() ? Number( that.$acc.val() ) : "",
+                    alt = that.$alt.val() ? Number( that.$alt.val() ) : '',
+                    acc = that.$acc.val() ? Number( that.$acc.val() ) : '',
                     latLng = {
                         lat: lat,
                         lng: lng
@@ -193,6 +192,15 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
                 that.$widget.addClass( 'full-screen' );
                 that._updateMap();
                 return false;
+            } );
+
+            // ensure all tiles are displayed when revealing page, https://github.com/kobotoolbox/enketo-express/issues/188
+            // remove handler once it has been used
+            this.$form.on( 'pageflip.enketo.map' + this.mapId, function( event ) {
+                if ( that.map && $.contains( event.target, that.element ) ) {
+                    that.map.invalidateSize();
+                    that.$form.off( 'pageflip.enketo.map' + that.mapId );
+                }
             } );
 
             // add wide class if question is wide
@@ -424,7 +432,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
                     alt = typeof point[ 2 ] === 'number' ? point[ 2 ] : 0.0,
                     acc = typeof point[ 3 ] === 'number' ? point[ 3 ] : 0.0;
 
-                geopoint = ( lat && lng ) ? lat + ' ' + lng + ' ' + alt + ' ' + acc : "";
+                geopoint = ( lat && lng ) ? lat + ' ' + lng + ' ' + alt + ' ' + acc : '';
 
                 // only last item may be empty
                 if ( !that._isValidGeopoint( geopoint ) && !( geopoint === '' && index === array.length - 1 ) ) {
@@ -471,8 +479,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             return (
                 ( coords[ 0 ] !== '' && coords[ 0 ] >= -90 && coords[ 0 ] <= 90 ) &&
                 ( coords[ 1 ] !== '' && coords[ 1 ] >= -180 && coords[ 1 ] <= 180 ) &&
-                ( typeof coords[ 2 ] == 'undefined' || !isNaN( coords[ 2 ] ) ) &&
-                ( typeof coords[ 3 ] == 'undefined' || ( !isNaN( coords[ 3 ] ) && coords[ 3 ] >= 0 ) )
+                ( typeof coords[ 2 ] === 'undefined' || !isNaN( coords[ 2 ] ) ) &&
+                ( typeof coords[ 3 ] === 'undefined' || ( !isNaN( coords[ 3 ] ) && coords[ 3 ] >= 0 ) )
             );
         };
 
@@ -597,13 +605,13 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
                                 } else {
                                     //TODO: add error message
                                     that.$search.closest( '.input-group' ).addClass( 'has-error' );
-                                    console.log( "Location '" + address + "' not found" );
+                                    console.log( 'Location "' + address + '" not found' );
                                 }
                             }, 'json' )
                             .fail( function() {
                                 //TODO: add error message
                                 that.$search.closest( '.input-group' ).addClass( 'has-error' );
-                                console.log( "Error. Geocoding service may not be available or app is offline" );
+                                console.log( 'Error. Geocoding service may not be available or app is offline' );
                             } )
                             .always( function() {
 
@@ -840,8 +848,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
          * @return {Promise} [description]
          */
         Geopicker.prototype._loadGoogleMapsScript = function() {
-            var apiKeyQueryParam, loadUrl,
-                that = this;
+            var apiKeyQueryParam, loadUrl;
 
             // request Google maps script only once, using a variable outside of the scope of the current widget
             // in case multiple widgets exist in the same form
@@ -856,8 +863,8 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
                     googleMapsScriptLoaded.resolve();
                 };
                 // make the request for the Google Maps script asynchronously
-                apiKeyQueryParam = ( googleApiKey ) ? "&key=" + googleApiKey : "";
-                loadUrl = "https://maps.google.com/maps/api/js?v=3.exp" + apiKeyQueryParam + "&sensor=false&libraries=places&callback=gmapsLoaded";
+                apiKeyQueryParam = ( googleApiKey ) ? '&key=' + googleApiKey : '';
+                loadUrl = 'http://maps.google.com/maps/api/js?v=3.exp' + apiKeyQueryParam + '&sensor=false&libraries=places&callback=gmapsLoaded';
                 require( [ loadUrl ] );
                 // ensure if won't be requested again
                 googleMapsScriptRequested = true;
@@ -1076,8 +1083,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
          * @return {Boolean]}        Whether point changed.
          */
         Geopicker.prototype._editPoint = function( latLng ) {
-            var changed,
-                oldVal = this.points[ this.currentIndex ];
+            var changed;
 
             this.points[ this.currentIndex ] = latLng;
 
@@ -1203,6 +1209,10 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
         Geopicker.prototype.enable = function() {
             this.$map.show();
             this.$widget.find( '.btn' ).removeClass( 'disabled' );
+            // ensure all tiles are displayed, https://github.com/kobotoolbox/enketo-express/issues/188
+            if ( this.map ) {
+                this.map.invalidateSize();
+            }
         };
 
         /**
@@ -1394,7 +1404,7 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
 
                 if ( !data && typeof options === 'object' ) {
                     $this.data( pluginName, ( data = new Geopicker( this, options, event ) ) );
-                } else if ( data && typeof options == 'string' ) {
+                } else if ( data && typeof options === 'string' ) {
                     //pass the context, used for destroy() as this method is called on a cloned widget
                     data[ options ]( this );
                 }
@@ -1432,7 +1442,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
                 L.Util.setOptions( this, options );
 
                 this._ready = google.maps.Map !== undefined;
-                if ( !this._ready ) L.Google.asyncWait.push( this );
+                if ( !this._ready ) {
+                    L.Google.asyncWait.push( this );
+                }
 
                 this._type = type || 'SATELLITE';
             },
@@ -1505,7 +1517,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             },
 
             _initMapObject: function() {
-                if ( !this._ready ) return;
+                if ( !this._ready ) {
+                    return;
+                }
                 this._google_center = new google.maps.LatLng( 0, 0 );
                 var map = new google.maps.Map( this._container, {
                     center: this._google_center,
@@ -1558,7 +1572,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             },
 
             _update: function( e ) {
-                if ( !this._google ) return;
+                if ( !this._google ) {
+                    return;
+                }
                 this._resize();
 
                 var center = this._map.getCenter();
@@ -1573,8 +1589,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             _resize: function() {
                 var size = this._map.getSize();
                 if ( this._container.style.width === size.x &&
-                    this._container.style.height === size.y )
+                    this._container.style.height === size.y ) {
                     return;
+                }
                 this.setElementSize( this._container, size );
                 this.onReposition();
             },
@@ -1590,7 +1607,9 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
 
 
             onReposition: function() {
-                if ( !this._google ) return;
+                if ( !this._google ) {
+                    return;
+                }
                 google.maps.event.trigger( this._google, 'resize' );
             }
         } );
@@ -1609,4 +1628,5 @@ define( [ 'jquery', 'enketo-js/Widget', 'text!enketo-config', 'leaflet', 'q' ],
             L.Google.asyncWait = [];
         };
 
+        return pluginName;
     } );

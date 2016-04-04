@@ -15,7 +15,7 @@
  */
 
 define( [ 'enketo-js/Widget', 'jquery', 'enketo-js/plugins' ], function( Widget, $ ) {
-    "use strict";
+    'use strict';
 
     var $lastFocused = null,
         pluginName = 'radiopicker';
@@ -29,16 +29,16 @@ define( [ 'enketo-js/Widget', 'jquery', 'enketo-js/plugins' ], function( Widget,
      * @param {*=} event     event
      */
 
-    function Radiopicker( element, options, event ) {
+    function Radiopicker( element, options ) {
         this.namespace = pluginName;
         Widget.call( this, element, options );
         this._init();
     }
 
-    //copy the prototype functions from the Widget super class
+    // Copy the prototype functions from the Widget super class
     Radiopicker.prototype = Object.create( Widget.prototype );
 
-    //ensure the constructor is the new one
+    // Ensure the constructor is the new one
     Radiopicker.prototype.constructor = Radiopicker;
 
     /**
@@ -52,29 +52,33 @@ define( [ 'enketo-js/Widget', 'jquery', 'enketo-js/plugins' ], function( Widget,
      * Set delegated event handlers
      */
     Radiopicker.prototype._setDelegatedHandlers = function() {
-        var $label,
+        var $label, $input,
             $form = $( this.element );
-
-        //applies a data-checked attribute to the parent label of a checked checkbox and radio button
+        // Applies a data-checked attribute to the parent label of a checked checkbox and radio button
         $form.on( 'click', 'input[type="radio"]:checked', function( event ) {
             $( this ).parent( 'label' ).siblings().removeAttr( 'data-checked' ).end().attr( 'data-checked', 'true' );
         } );
 
         $form.on( 'click', 'input[type="checkbox"]', function( event ) {
-            $label = $( this ).parent( 'label' );
-            if ( $( this ).is( ':checked' ) ) $label.attr( 'data-checked', 'true' );
-            else $label.removeAttr( 'data-checked' );
+            $input = $( this );
+            $label = $input.parent( 'label' );
+            if ( $input.is( ':checked' ) ) {
+                $label.attr( 'data-checked', 'true' );
+            } else {
+                $label.removeAttr( 'data-checked' );
+            }
         } );
 
         // new radiobutton/checkbox icons don't trigger focus event, which is necessary for 
         // progress update and subtle "required" message
-        // we need to unfocus the previously focused elemnt
+        // we need to unfocus the previously focused element
         $form.on( 'click', 'input[type="radio"], input[type="checkbox"]', function( event ) {
             if ( $lastFocused ) {
                 $lastFocused.trigger( 'fakeblur' );
             }
             $lastFocused = $( this ).trigger( 'fakefocus' );
         } );
+
         // clear last focused element when a non-radio/checkbox element gets focus
         $form.on( 'focusin fakefocus', 'input:not([type="radio"], [type="checkbox"]), textarea, select', function( event ) {
             if ( $lastFocused ) {
@@ -99,7 +103,6 @@ define( [ 'enketo-js/Widget', 'jquery', 'enketo-js/plugins' ], function( Widget,
      */
     Radiopicker.prototype.destroy = function( element ) {
         //all handlers are global and deep copies of repeats should keep functionality intact
-        console.debug( pluginName, 'destroy called' );
     };
 
 
@@ -112,11 +115,12 @@ define( [ 'enketo-js/Widget', 'jquery', 'enketo-js/plugins' ], function( Widget,
 
         if ( !data && typeof options === 'object' ) {
             $this.data( pluginName, ( data = new Radiopicker( $this[ 0 ], options, event ) ) );
-        } else if ( data && typeof options == 'string' ) {
+        } else if ( data && typeof options === 'string' ) {
             data[ options ]( this );
         }
 
         return this;
     };
 
+    return pluginName;
 } );
