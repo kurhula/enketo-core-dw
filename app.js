@@ -121,7 +121,7 @@ requirejs( [ 'require-config' ], function( rc ) {
 
         //validate handler for validate button
         $( '#validate-form' ).on( 'click', function() {
-            saveXformSubmission();
+                saveXformSubmission(DW.calledAfterEdit);
                 console.log( 'media files:', fileManager.getCurrentFiles() );
         });
         });
